@@ -1663,13 +1663,35 @@ var HTTPRequestHeaders = function(channel) {
 
 HTTPRequestHeaders.prototype.init = function(channel) {
     this.channel = channel;
+    this.originalRequestHeaders = new Array();
+    this.originalHeaderNames = new Array();
+    channel.visitRequestHeaders({visitHeader: function(name, value) {
+        this.originalRequestHeaders.push({name: name, value: value});
+        this.originalHeaderNames.push(name);
+    }.bind(this)});
     return this;
 };
 
 HTTPRequestHeaders.prototype.dispose = function() {
     this.channel = null;
+    this.originalRequestHeaders = null;
+    this.originalHeaderNames = null;
     httpRequestHeadersFactory.junkyard.push(this);
 };
+
+HTTPRequestHeaders.prototype.setHeaders = function(requestHeaders) {
+    var newHeaderNames = new Set();
+    for ( var header of requestHeaders ) {
+        this.setHeader(header.name, header.value, true);
+        newHeaderNames.add(header.name);
+    }
+    //Clear any headers that were removed
+    for ( var name of this.originalHeaderNames ) {
+        if ( !newHeaderNames.has(name) ) {
+            this.channel.setRequestHeader(name, '', false);
+        }
+    }
+}
 
 HTTPRequestHeaders.prototype.getHeader = function(name) {
     try {
@@ -1900,13 +1922,17 @@ var httpObserver = {
         var onBeforeSendHeaders = vAPI.net.onBeforeSendHeaders;
         if ( onBeforeSendHeaders.types === null || onBeforeSendHeaders.types.has(type) ) {
             var requestHeaders = httpRequestHeadersFactory(channel);
-            onBeforeSendHeaders.callback({
+            var newHeaders = onBeforeSendHeaders.callback({
                 parentFrameId: type === 'main_frame' ? -1 : 0,
-                requestHeaders: requestHeaders,
+                requestHeaders: requestHeaders.originalRequestHeaders,
                 tabId: tabId,
                 type: type,
-                url: URI.asciiSpec
+                url: URI.asciiSpec,
+                method: channel.requestMethod
             });
+            if ( newHeaders ) {
+                requestHeaders.setHeaders(newHeaders.requestHeaders);
+            }
             requestHeaders.dispose();
         }
 
@@ -2008,29 +2034,38 @@ var httpObserver = {
                 return;
             }
 
-            topic = 'Content-Security-Policy';
-
+            topic = ['Content-Security-Policy', 'Content-Security-Policy-Report-Only'];
+            var responseHeaders = [];
             var result;
-            try {
-                result = channel.getResponseHeader(topic);
-            } catch (ex) {
-                result = null;
+            for ( let headerName of topic ) {
+                try {
+                    result = channel.getResponseHeader(headerName);
+                    responseHeaders.push({name: headerName, value: result});
+                } catch (ex) {
+                }
             }
+
+            // TODO: Find a more appropriate home for this
+            // Web workers not blocked in Pale Moon as child-src currently unavailable, see:
+            // https://github.com/MoonchildProductions/Pale-Moon/issues/949
+            µMatrix.cspNoWorker = "child-src 'none'; frame-src data: blob: *; report-uri about:blank";
 
             result = vAPI.net.onHeadersReceived.callback({
                 parentFrameId: type === 'main_frame' ? -1 : 0,
-                responseHeaders: result ? [{name: topic, value: result}] : [],
+                responseHeaders: responseHeaders,
                 tabId: channelData[0],
                 type: type,
                 url: URI.asciiSpec
             });
 
             if ( result ) {
-                channel.setResponseHeader(
-                    topic,
-                    result.responseHeaders.pop().value,
-                    true
-                );
+                for ( let header of result.responseHeaders ) {
+                    channel.setResponseHeader(
+                        header.name,
+                        header.value,
+                        true
+                    );
+                }
             }
 
             return;
