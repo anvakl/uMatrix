@@ -1663,10 +1663,10 @@ var HTTPRequestHeaders = function(channel) {
 
 HTTPRequestHeaders.prototype.init = function(channel) {
     this.channel = channel;
-    this.originalRequestHeaders = new Array();
+    this.headers = new Array();
     this.originalHeaderNames = new Array();
     channel.visitRequestHeaders({visitHeader: function(name, value) {
-        this.originalRequestHeaders.push({name: name, value: value});
+        this.headers.push({name: name, value: value});
         this.originalHeaderNames.push(name);
     }.bind(this)});
     return this;
@@ -1674,14 +1674,14 @@ HTTPRequestHeaders.prototype.init = function(channel) {
 
 HTTPRequestHeaders.prototype.dispose = function() {
     this.channel = null;
-    this.originalRequestHeaders = null;
+    this.headers = null;
     this.originalHeaderNames = null;
     httpRequestHeadersFactory.junkyard.push(this);
 };
 
-HTTPRequestHeaders.prototype.setHeaders = function(requestHeaders) {
+HTTPRequestHeaders.prototype.update = function() {
     var newHeaderNames = new Set();
-    for ( var header of requestHeaders ) {
+    for ( var header of this.headers ) {
         this.setHeader(header.name, header.value, true);
         newHeaderNames.add(header.name);
     }
@@ -1924,14 +1924,14 @@ var httpObserver = {
             var requestHeaders = httpRequestHeadersFactory(channel);
             var newHeaders = onBeforeSendHeaders.callback({
                 parentFrameId: type === 'main_frame' ? -1 : 0,
-                requestHeaders: requestHeaders.originalRequestHeaders,
+                requestHeaders: requestHeaders.headers,
                 tabId: tabId,
                 type: type,
                 url: URI.asciiSpec,
                 method: channel.requestMethod
             });
             if ( newHeaders ) {
-                requestHeaders.setHeaders(newHeaders.requestHeaders);
+                requestHeaders.update();
             }
             requestHeaders.dispose();
         }
@@ -2034,25 +2034,19 @@ var httpObserver = {
                 return;
             }
 
-            topic = ['Content-Security-Policy', 'Content-Security-Policy-Report-Only'];
-            var responseHeaders = [];
-            var result;
-            for ( let headerName of topic ) {
-                try {
-                    result = channel.getResponseHeader(headerName);
-                    responseHeaders.push({name: headerName, value: result});
-                } catch (ex) {
-                }
-            }
+            //topic = ['Content-Security-Policy', 'Content-Security-Policy-Report-Only'];
+            // Can send empty responseHeaders as these headers are only added to and then merged.
 
-            // TODO: Find a more appropriate home for this
+            // TODO: Find better place for this, needs to be set before onHeadersReceived.callback.
             // Web workers not blocked in Pale Moon as child-src currently unavailable, see:
             // https://github.com/MoonchildProductions/Pale-Moon/issues/949
-            µMatrix.cspNoWorker = "child-src 'none'; frame-src data: blob: *; report-uri about:blank";
+            if ( µMatrix.cspNoWorker === undefined ) {
+                µMatrix.cspNoWorker = "child-src 'none'; frame-src data: blob: *; report-uri about:blank";
+            }
 
-            result = vAPI.net.onHeadersReceived.callback({
+            var result = vAPI.net.onHeadersReceived.callback({
                 parentFrameId: type === 'main_frame' ? -1 : 0,
-                responseHeaders: responseHeaders,
+                responseHeaders: [],
                 tabId: channelData[0],
                 type: type,
                 url: URI.asciiSpec

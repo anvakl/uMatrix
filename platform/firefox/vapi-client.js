@@ -79,7 +79,7 @@ vAPI.messaging = {
     requestId: 1,
     connected: false,
 
-    setup: function() {
+    start: function() {
         this.addListener(this.builtinListener);
         if ( this.toggleListenerCallback === null ) {
             this.toggleListenerCallback = this.toggleListener.bind(this);
@@ -205,7 +205,7 @@ vAPI.messaging = {
     }
 };
 
-vAPI.messaging.setup()
+vAPI.messaging.start()
 
 /******************************************************************************/
 
