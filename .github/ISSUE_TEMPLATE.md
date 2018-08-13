@@ -10,8 +10,8 @@ diagnose issues with your ruleset.
 uMatrix is for advanced users. Do not use the issue tracker to ask for
 support if you have issues using uMatrix.
 
-For question/support/discussions, there is Mozilla Discourse:
-https://discourse.mozilla-community.org/t/support-umatrix/5131
+For question/support/discussions, there is Reddit's /r/uMatrix:
+https://www.reddit.com/r/uMatrix/
 
 For documentation:
 https://github.com/gorhill/uMatrix/wiki

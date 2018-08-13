@@ -108,7 +108,11 @@
         "description": "Appears in the metadata row of bottom-most group: **mind the limited width**"
     },
     "matrixSwitchNoMixedContent": {
-        "message": "Strict HTTPS",
+        "message": "Proibisci i contenuti misti",
+        "description": "A menu entry in the matrix popup"
+    },
+    "matrixSwitchNoWorker": {
+        "message": "Proibisci i web worker",
         "description": "A menu entry in the matrix popup"
     },
     "matrixSwitchReferrerSpoof": {
@@ -116,7 +120,7 @@
         "description": "A menu entry in the matrix popup"
     },
     "matrixSwitchNoscriptSpoof": {
-        "message": "<code><noscript><\/code> tags spoofing",
+        "message": "Spoof dei tag <code><noscript><\/code>",
         "description": "A menu entry in the matrix popup"
     },
     "matrixRevertAllEntry": {
@@ -334,6 +338,10 @@
     "settingsCollapseBlocked": {
         "message": "Nascondi lo spazio riservato agli elementi bloccati",
         "description": "English: Collapse placeholder of blocked elements"
+    },
+    "settingsCollapseBlacklisted": {
+        "message": "Nascondi lo spazio riservato agli elementi bloccati",
+        "description": "A setting in the dashboard's Settings pane: 'blacklisted' means 'for which there is a specific block rule', 'specific' means 'a rule for which the destination hostname is not `*`'"
     },
     "settingsNoscriptTagsSpoofed": {
         "message": "Falsifica i tag <code><noscript><\/code> quando gli script del dominio sono bloccati",

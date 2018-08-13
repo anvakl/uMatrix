@@ -1,7 +1,7 @@
 /*******************************************************************************
 
-    µMatrix - a Chromium browser extension to block requests.
-    Copyright (C) 2014 Raymond Hill
+    uMatrix - a Chromium browser extension to block requests.
+    Copyright (C) 2014-2017 Raymond Hill
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,17 +19,13 @@
     Home: https://github.com/gorhill/uMatrix
 */
 
-/* global vAPI, uDom */
-
-/******************************************************************************/
-
-(function() {
+/* global uDom */
 
 'use strict';
 
 /******************************************************************************/
 
-var messager = vAPI.messaging.channel('user-rules.js');
+(function() {
 
 /******************************************************************************/
 
@@ -122,7 +118,7 @@ var processUserRules = function(response) {
 var fromRequestPolicy = function(content) {
     var matches = /\[origins-to-destinations\]([^\[]+)/.exec(content);
     if ( matches === null || matches.length !== 2 ) {
-        return '';
+        return;
     }
     return matches[1].trim()
                      .replace(/\|/g, ' ')
@@ -147,9 +143,9 @@ var fromNoScript = function(content) {
         typeof noscript.whitelist !== 'string' ||
         typeof noscript.V !== 'string'
     ) {
-        return '';
+        return;
     }
-    var out = {};
+    var out = new Set();
     var reBad = /[a-z]+:\w*$/;
     var reURL = /[a-z]+:\/\/([0-9a-z.-]+)/;
     var directives = noscript.whitelist.split(/\s+/);
@@ -167,9 +163,11 @@ var fromNoScript = function(content) {
         if ( matches !== null ) {
             directive = matches[1];
         }
-        out['* ' + directive + ' script allow'] = true;
+        out.add('* ' + directive + ' * allow');
+        out.add('* ' + directive + ' script allow');
+        out.add('* ' + directive + ' frame allow');
     }
-    return Object.keys(out).join('\n');
+    return Array.from(out).join('\n');
 };
 
 /******************************************************************************/
@@ -180,17 +178,18 @@ var handleImportFilePicker = function() {
             return;
         }
         var result = fromRequestPolicy(this.result);
-        if ( result === '' ) {
+        if ( result === undefined ) {
             result = fromNoScript(this.result);
-            if ( result === '' ) {
+            if ( result === undefined ) {
                 result = this.result;
             }
         }
+        if ( this.result === '' ) { return; }
         var request = {
             'what': 'setUserRules',
             'temporaryRules': rulesFromHTML('#diff .right li') + '\n' + result
         };
-        messager.send(request, processUserRules);
+        vAPI.messaging.send('user-rules.js', request, processUserRules);
     };
     var file = this.files[0];
     if ( file === undefined || file.name === '' ) {
@@ -248,7 +247,7 @@ var revertHandler = function() {
         'what': 'setUserRules',
         'temporaryRules': rulesFromHTML('#diff .left li')
     };
-    messager.send(request, processUserRules);
+    vAPI.messaging.send('user-rules.js', request, processUserRules);
 };
 
 /******************************************************************************/
@@ -258,12 +257,12 @@ var commitHandler = function() {
         'what': 'setUserRules',
         'permanentRules': rulesFromHTML('#diff .right li')
     };
-    messager.send(request, processUserRules);
+    vAPI.messaging.send('user-rules.js', request, processUserRules);
 };
 
 /******************************************************************************/
 
-var editStartHandler = function(ev) {
+var editStartHandler = function() {
     uDom('#diff .right textarea').val(rulesFromHTML('#diff .right li'));
     var parent = uDom(this).ancestors('#diff');
     parent.toggleClass('edit', true);
@@ -271,33 +270,33 @@ var editStartHandler = function(ev) {
 
 /******************************************************************************/
 
-var editStopHandler = function(ev) {
+var editStopHandler = function() {
     var parent = uDom(this).ancestors('#diff');
     parent.toggleClass('edit', false);
     var request = {
         'what': 'setUserRules',
         'temporaryRules': uDom('#diff .right textarea').val()
     };
-    messager.send(request, processUserRules);
+    vAPI.messaging.send('user-rules.js', request, processUserRules);
 };
 
 /******************************************************************************/
 
-var editCancelHandler = function(ev) {
+var editCancelHandler = function() {
     var parent = uDom(this).ancestors('#diff');
     parent.toggleClass('edit', false);
 };
 
 /******************************************************************************/
 
-var temporaryRulesToggler = function(ev) {
+var temporaryRulesToggler = function() {
     var li = uDom(this);
     li.toggleClass('toRemove');
     var request = {
         'what': 'setUserRules',
         'temporaryRules': rulesFromHTML('#diff .right li')
     };
-    messager.send(request, processUserRules);
+    vAPI.messaging.send('user-rules.js', request, processUserRules);
 };
 
 /******************************************************************************/
@@ -315,7 +314,7 @@ self.cloud.onPull = function(data, append) {
         'what': 'setUserRules',
         'temporaryRules': data
     };
-    messager.send(request, processUserRules);
+    vAPI.messaging.send('user-rules.js', request, processUserRules);
 };
 
 /******************************************************************************/
@@ -332,7 +331,7 @@ uDom.onLoad(function() {
     uDom('#editCancelButton').on('click', editCancelHandler);
     uDom('#diff > .right > ul').on('click', 'li', temporaryRulesToggler);
 
-    messager.send({ what: 'getUserRules' }, processUserRules);
+    vAPI.messaging.send('user-rules.js', { what: 'getUserRules' }, processUserRules);
 });
 
 /******************************************************************************/

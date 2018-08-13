@@ -100,7 +100,7 @@
         "description": "Tool tip for the reload button"
     },
     "matrix1stPartyLabel": {
-        "message": "주",
+        "message": "최상위 도메인",
         "description": "1st-party"
     },
     "matrixBlacklistedHostnames": {
@@ -109,6 +109,10 @@
     },
     "matrixSwitchNoMixedContent": {
         "message": "전체 HTTPS",
+        "description": "A menu entry in the matrix popup"
+    },
+    "matrixSwitchNoWorker": {
+        "message": "Forbid web workers",
         "description": "A menu entry in the matrix popup"
     },
     "matrixSwitchReferrerSpoof": {
@@ -332,11 +336,15 @@
         "description": "English: Show the number of distinct requests on the icon"
     },
     "settingsCollapseBlocked": {
-        "message": "차단 된 요청과 관련된 페이지 콘텐츠를 숨 깁니다.",
+        "message": "차단 된 요청과 관련된 페이지 콘텐츠를 숨깁니다.",
         "description": "English: Collapse placeholder of blocked elements"
     },
+    "settingsCollapseBlacklisted": {
+        "message": "차단 된 요청과 관련된 페이지 콘텐츠 숨김",
+        "description": "A setting in the dashboard's Settings pane: 'blacklisted' means 'for which there is a specific block rule', 'specific' means 'a rule for which the destination hostname is not `*`'"
+    },
     "settingsNoscriptTagsSpoofed": {
-        "message": "웹페이지의 도메인 스크립트가 차단되면 <code><noscript><\/code> 태그를 위장합니다.",
+        "message": "웹 페이지의 도메인 스크립트가 차단되면 <code><noscript><\/code> 태그 수정",
         "description": "This appears in the Settings pane in the dashboard"
     },
     "settingsCloudStorageEnabled": {
@@ -456,7 +464,7 @@
         "description": "default file name to use"
     },
     "hostsFilesPrompt": {
-        "message": "호스트 파일에있 도메인은 글로벌 블랙리스트에 포함됩니다.",
+        "message": "호스트 파일에있는 도메인은 글로벌 블랙리스트에 포함됩니다.",
         "description": ""
     },
     "hostsFilesStats": {

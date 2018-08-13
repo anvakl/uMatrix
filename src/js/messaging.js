@@ -164,6 +164,9 @@ var matrixSnapshot = function(pageStore, details) {
         collapseBlacklistedDomains: µmuser.popupCollapseBlacklistedDomains,
         diff: [],
         domain: pageStore.pageDomain,
+        has3pReferrer: pageStore.has3pReferrer,
+        hasMixedContent: pageStore.hasMixedContent,
+        hasNoscriptTags: pageStore.hasNoscriptTags,
         headerIndices: Array.from(headerIndices),
         hostname: pageStore.pageHostname,
         mtxContentModified: pageStore.mtxContentModifiedTime !== details.mtxContentModifiedTime,
@@ -391,9 +394,7 @@ var contentScriptSummaryHandler = function(tabId, details) {
     // TODO: Investigate "Error in response to tabs.executeScript: TypeError:
     // Cannot read property 'locationURL' of null" (2013-11-12). When can this
     // happens? 
-    if ( !details || !details.locationURL ) {
-        return;
-    }
+    if ( !details || !details.locationURL ) { return; }
 
     // scripts
     if ( details.inlineScript !== true ) {
@@ -402,9 +403,7 @@ var contentScriptSummaryHandler = function(tabId, details) {
 
     // https://github.com/gorhill/httpswitchboard/issues/25
     var pageStore = µm.pageStoreFromTabId(tabId);
-    if ( pageStore === null ) {
-        return;
-    }
+    if ( pageStore === null ) { return; }
 
     var pageHostname = pageStore.pageHostname;
     var µmuri = µm.URI.set(details.locationURL);
@@ -426,69 +425,59 @@ var contentScriptSummaryHandler = function(tabId, details) {
 
 /******************************************************************************/
 
-var contentScriptLocalStorageHandler = function(tabId, pageURL) {
-    var µmuri = µm.URI.set(pageURL);
-    var response = µm.mustBlock(µm.scopeFromURL(pageURL), µmuri.hostname, 'cookie');
-    µm.recordFromTabId(
-        tabId,
-        'cookie',
-        µmuri.rootURL() + '/{localStorage}',
-        response
+var contentScriptLocalStorageHandler = function(tabId, originURL) {
+    var tabContext = µm.tabContextManager.lookup(tabId);
+    if ( tabContext === null ) { return; }
+
+    var blocked = µm.mustBlock(
+        tabContext.rootHostname,
+        µm.URI.hostnameFromURI(originURL),
+        'cookie'
     );
-    response = response && µm.userSettings.deleteLocalStorage;
-    if ( response ) {
+
+    var pageStore = µm.pageStoreFromTabId(tabId);
+    if ( pageStore !== null ) {
+        var requestURL = originURL + '/{localStorage}';
+        pageStore.recordRequest('cookie', requestURL, blocked);
+        µm.logger.writeOne(tabId, 'net', tabContext.rootHostname, requestURL, 'cookie', blocked);
+    }
+
+    var removeStorage = blocked && µm.userSettings.deleteLocalStorage;
+    if ( removeStorage ) {
         µm.localStorageRemovedCounter++;
     }
-    return response;
+
+    return removeStorage;
 };
 
 /******************************************************************************/
 
 // Evaluate many URLs against the matrix.
 
-var evaluateURLs = function(tabId, requests) {
-    var collapse = µm.userSettings.collapseBlocked;
+var lookupBlockedCollapsibles = function(tabId, requests) {
     var response = {
-        collapse: collapse,
-        requests: requests
+        blockedResources: [],
+        hash: requests.hash,
+        id: requests.id,
+        placeholders: placeholders
     };
 
-    // Create evaluation context
     var tabContext = µm.tabContextManager.lookup(tabId);
     if ( tabContext === null ) {
         return response;
     }
-    var rootHostname = tabContext.rootHostname;
-
-    //console.debug('messaging.js/contentscript.js: processing %d requests', requests.length);
 
     var pageStore = µm.pageStoreFromTabId(tabId);
-    var µmuri = µm.URI;
-    var typeMap = tagNameToRequestTypeMap;
-    var request, type;
-    var i = requests.length;
-    while ( i-- ) {
-        request = requests[i];
-        type = typeMap[request.tagName];
-        request.blocked = µm.mustBlock(
-            rootHostname,
-            µmuri.hostnameFromURI(request.url),
-            type
-        );
-        // https://github.com/gorhill/uMatrix/issues/205
-        // If blocked, the URL must be recorded by the page store, so as to ensure
-        // they are properly reflected in the matrix.
-        if ( request.blocked && pageStore ) {
-            pageStore.recordRequest(type, request.url, true);
-        }
+    if ( pageStore !== null ) {
+        pageStore.lookupBlockedCollapsibles(requests, response);
     }
 
-    if ( collapse ) {
-        placeholders = null;
-        return response;
-    }
+    // TODO: evaluate whether the issue reported below still exists.
+    //   https://github.com/gorhill/uMatrix/issues/205
+    //   If blocked, the URL must be recorded by the page store, so as to
+    //   ensure they are properly reflected in the matrix.
 
-    if ( placeholders === null ) {
+    if ( response.placeholders === null ) {
         placeholders = {
             background:
                 vAPI.localStorage.getItem('placeholderBackground') ||
@@ -505,17 +494,10 @@ var evaluateURLs = function(tabId, requests) {
         };
         placeholders.iframe =
             placeholders.iframe.replace('{{bg}}', placeholders.background);
+        response.placeholders = placeholders;
     }
-    response.placeholders = placeholders;
 
     return response;
-};
-
-/******************************************************************************/
-
-var tagNameToRequestTypeMap = {
-    'iframe': 'frame',
-       'img': 'image'
 };
 
 var placeholders = null;
@@ -529,30 +511,33 @@ var onMessage = function(request, sender, callback) {
         break;
     }
 
-    var tabId = sender && sender.tab ? sender.tab.id || 0 : 0;
-    var tabContext = µm.tabContextManager.lookup(tabId);
+    var tabId = sender && sender.tab ? sender.tab.id || 0 : 0,
+        tabContext = µm.tabContextManager.lookup(tabId),
+        pageStore = µm.pageStoreFromTabId(tabId);
 
     // Sync
     var response;
 
     switch ( request.what ) {
     case 'contentScriptHasLocalStorage':
-        response = contentScriptLocalStorageHandler(tabId, request.url);
+        response = contentScriptLocalStorageHandler(tabId, request.originURL);
         break;
 
     case 'contentScriptSummary':
         contentScriptSummaryHandler(tabId, request);
         break;
 
-    case 'evaluateURLs':
-        response = evaluateURLs(tabId, request.requests);
+    case 'lookupBlockedCollapsibles':
+        response = lookupBlockedCollapsibles(tabId, request);
         break;
 
     case 'mustRenderNoscriptTags?':
-        if ( tabContext !== null ) {
-            response =
-                µm.tMatrix.mustBlock(tabContext.rootHostname, tabContext.rootHostname, 'script') &&
-                µm.tMatrix.evaluateSwitchZ('noscript-spoof', tabContext.rootHostname);
+        if ( tabContext === null ) { break; }
+        response =
+            µm.tMatrix.mustBlock(tabContext.rootHostname, tabContext.rootHostname, 'script') &&
+            µm.tMatrix.evaluateSwitchZ('noscript-spoof', tabContext.rootHostname);
+        if ( pageStore !== null ) {
+            pageStore.hasNoscriptTags = true;
         }
         break;
 

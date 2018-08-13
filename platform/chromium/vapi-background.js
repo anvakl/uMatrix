@@ -55,9 +55,7 @@ var noopFunc = function(){};
 
 // https://github.com/gorhill/uMatrix/issues/234
 // https://developer.chrome.com/extensions/privacy#property-network
-chrome.privacy.network.networkPredictionEnabled.set({
-    value: false
-});
+chrome.privacy.network.networkPredictionEnabled.set({ value: false });
 
 /******************************************************************************/
 
@@ -125,9 +123,7 @@ vAPI.tabs.registerListeners = function() {
 
     var onCreatedNavigationTarget = function(details) {
         //console.debug('onCreatedNavigationTarget: tab id %d = "%s"', details.tabId, details.url);
-        if ( reGoodForWebRequestAPI.test(details.url) ) {
-            return;
-        }
+        if ( reGoodForWebRequestAPI.test(details.url) ) { return; }
         details.tabId = details.tabId.toString();
         onNavigationClient(details);
     };
@@ -414,7 +410,7 @@ vAPI.setIcon = function(tabId, iconId, badge) {
 /******************************************************************************/
 
 vAPI.messaging = {
-    ports: {},
+    ports: new Map(),
     listeners: {},
     defaultHandler: null,
     NOOPFUNC: noopFunc,
@@ -429,62 +425,114 @@ vAPI.messaging.listen = function(listenerName, callback) {
 
 /******************************************************************************/
 
-vAPI.messaging.onPortMessage = function(request, port) {
-    var callback = vAPI.messaging.NOOPFUNC;
-    if ( request.requestId !== undefined ) {
-        callback = CallbackWrapper.factory(port, request).callback;
-    }
+vAPI.messaging.onPortMessage = (function() {
+    var messaging = vAPI.messaging;
 
-    // Specific handler
-    var r = vAPI.messaging.UNHANDLED;
-    var listener = vAPI.messaging.listeners[request.channelName];
-    if ( typeof listener === 'function' ) {
-        r = listener(request.msg, port.sender, callback);
-    }
-    if ( r !== vAPI.messaging.UNHANDLED ) {
-        return;
-    }
+    // Use a wrapper to avoid closure and to allow reuse.
+    var CallbackWrapper = function(port, request) {
+        this.callback = this.proxy.bind(this); // bind once
+        this.init(port, request);
+    };
 
-    // Default handler
-    r = vAPI.messaging.defaultHandler(request.msg, port.sender, callback);
-    if ( r !== vAPI.messaging.UNHANDLED ) {
-        return;
-    }
+    CallbackWrapper.prototype = {
+        init: function(port, request) {
+            this.port = port;
+            this.request = request;
+            return this;
+        },
+        proxy: function(response) {
+            // https://github.com/chrisaljoudi/uBlock/issues/383
+            if ( messaging.ports.has(this.port.name) ) {
+                this.port.postMessage({
+                    auxProcessId: this.request.auxProcessId,
+                    channelName: this.request.channelName,
+                    msg: response !== undefined ? response : null
+                });
+            }
+            // Mark for reuse
+            this.port = this.request = null;
+            callbackWrapperJunkyard.push(this);
+        }
+    };
 
-    console.error('µMatrix> messaging > unknown request: %o', request);
+    var callbackWrapperJunkyard = [];
 
-    // Unhandled:
-    // Need to callback anyways in case caller expected an answer, or
-    // else there is a memory leak on caller's side
-    callback();
-};
+    var callbackWrapperFactory = function(port, request) {
+        var wrapper = callbackWrapperJunkyard.pop();
+        if ( wrapper ) {
+            return wrapper.init(port, request);
+        }
+        return new CallbackWrapper(port, request);
+    };
+
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=1392067
+    //   Workaround: manually remove ports matching removed tab.
+    chrome.tabs.onRemoved.addListener(function(tabId) {
+        for ( var port of messaging.ports.values() ) {
+            var tab = port.sender && port.sender.tab;
+            if ( !tab ) { continue; }
+            if ( tab.id === tabId ) {
+                vAPI.messaging.onPortDisconnect(port);
+            }
+        }
+    });
+
+    return function(request, port) {
+        // prepare response
+        var callback = this.NOOPFUNC;
+        if ( request.auxProcessId !== undefined ) {
+            callback = callbackWrapperFactory(port, request).callback;
+        }
+
+        // Auxiliary process to main process: specific handler
+        var r = this.UNHANDLED,
+            listener = this.listeners[request.channelName];
+        if ( typeof listener === 'function' ) {
+            r = listener(request.msg, port.sender, callback);
+        }
+        if ( r !== this.UNHANDLED ) { return; }
+
+        // Auxiliary process to main process: default handler
+        r = this.defaultHandler(request.msg, port.sender, callback);
+        if ( r !== this.UNHANDLED ) { return; }
+
+        // Auxiliary process to main process: no handler
+        console.error(
+            'vAPI.messaging.onPortMessage > unhandled request: %o',
+            request
+        );
+
+        // Need to callback anyways in case caller expected an answer, or
+        // else there is a memory leak on caller's side
+        callback();
+    }.bind(vAPI.messaging);
+})();
 
 /******************************************************************************/
 
 vAPI.messaging.onPortDisconnect = function(port) {
-    port.onDisconnect.removeListener(vAPI.messaging.onPortDisconnect);
-    port.onMessage.removeListener(vAPI.messaging.onPortMessage);
-    delete vAPI.messaging.ports[port.name];
-};
+    port.onDisconnect.removeListener(this.onPortDisconnect);
+    port.onMessage.removeListener(this.onPortMessage);
+    this.ports.delete(port.name);
+}.bind(vAPI.messaging);
 
 /******************************************************************************/
 
 vAPI.messaging.onPortConnect = function(port) {
-    port.onDisconnect.addListener(vAPI.messaging.onPortDisconnect);
-    port.onMessage.addListener(vAPI.messaging.onPortMessage);
-    vAPI.messaging.ports[port.name] = port;
-};
+    port.onDisconnect.addListener(this.onPortDisconnect);
+    port.onMessage.addListener(this.onPortMessage);
+    this.ports.set(port.name, port);
+}.bind(vAPI.messaging);
 
 /******************************************************************************/
 
 vAPI.messaging.setup = function(defaultHandler) {
-    // Already setup?
-    if ( this.defaultHandler !== null ) {
-        return;
-    }
+    if ( this.defaultHandler !== null ) { return; }
 
     if ( typeof defaultHandler !== 'function' ) {
-        defaultHandler = function(){ return vAPI.messaging.UNHANDLED; };
+        defaultHandler = function(){
+            return vAPI.messaging.UNHANDLED;
+        };
     }
     this.defaultHandler = defaultHandler;
 
@@ -498,69 +546,9 @@ vAPI.messaging.broadcast = function(message) {
         broadcast: true,
         msg: message
     };
-
-    for ( var portName in this.ports ) {
-        if ( this.ports.hasOwnProperty(portName) === false ) {
-            continue;
-        }
-        this.ports[portName].postMessage(messageWrapper);
+    for ( var port of this.ports.values() ) {
+        port.postMessage(messageWrapper);
     }
-};
-
-/******************************************************************************/
-
-// This allows to avoid creating a closure for every single message which
-// expects an answer. Having a closure created each time a message is processed
-// has been always bothering me. Another benefit of the implementation here
-// is to reuse the callback proxy object, so less memory churning.
-//
-// https://developers.google.com/speed/articles/optimizing-javascript
-// "Creating a closure is significantly slower then creating an inner
-//  function without a closure, and much slower than reusing a static
-//  function"
-//
-// http://hacksoflife.blogspot.ca/2015/01/the-four-horsemen-of-performance.html
-// "the dreaded 'uniformly slow code' case where every function takes 1%
-//  of CPU and you have to make one hundred separate performance optimizations
-//  to improve performance at all"
-//
-// http://jsperf.com/closure-no-closure/2
-
-var CallbackWrapper = function(port, request) {
-    // No need to bind every single time
-    this.callback = this.proxy.bind(this);
-    this.messaging = vAPI.messaging;
-    this.init(port, request);
-};
-
-CallbackWrapper.junkyard = [];
-
-CallbackWrapper.factory = function(port, request) {
-    var wrapper = CallbackWrapper.junkyard.pop();
-    if ( wrapper ) {
-        wrapper.init(port, request);
-        return wrapper;
-    }
-    return new CallbackWrapper(port, request);
-};
-
-CallbackWrapper.prototype.init = function(port, request) {
-    this.port = port;
-    this.request = request;
-};
-
-CallbackWrapper.prototype.proxy = function(response) {
-    // https://github.com/chrisaljoudi/uBlock/issues/383
-    if ( this.messaging.ports.hasOwnProperty(this.port.name) ) {
-        this.port.postMessage({
-            requestId: this.request.requestId,
-            channelName: this.request.channelName,
-            msg: response !== undefined ? response : null
-        });
-    }
-    // Mark for reuse
-    this.port = this.request = null;
-    CallbackWrapper.junkyard.push(this);
 };
 
 /******************************************************************************/
@@ -571,78 +559,7 @@ vAPI.net = {};
 /******************************************************************************/
 
 vAPI.net.registerListeners = function() {
-    var µm = µMatrix,
-        reNetworkURL = /^(?:https?|wss?):\/\//,
-        httpRequestHeadersJunkyard = [];
-
-    // Abstraction layer to deal with request headers
-    // >>>>>>>>
-    var httpRequestHeadersFactory = function(headers) {
-        var entry = httpRequestHeadersJunkyard.pop();
-        if ( entry ) {
-            return entry.init(headers);
-        }
-        return new HTTPRequestHeaders(headers);
-    };
-
-    var HTTPRequestHeaders = function(headers) {
-        this.init(headers);
-    };
-
-    HTTPRequestHeaders.prototype.init = function(headers) {
-        this.modified = false;
-        this.headers = headers;
-        return this;
-    };
-
-    HTTPRequestHeaders.prototype.dispose = function() {
-        var r = this.modified ? this.headers : null;
-        this.headers = null;
-        httpRequestHeadersJunkyard.push(this);
-        return r;
-    };
-
-    HTTPRequestHeaders.prototype.getHeader = function(target) {
-        var headers = this.headers;
-        var header, name;
-        var i = headers.length;
-        while ( i-- ) {
-            header = headers[i];
-            name = header.name.toLowerCase();
-            if ( name === target ) {
-                return header.value;
-            }
-        }
-        return '';
-    };
-
-    HTTPRequestHeaders.prototype.setHeader = function(target, value, create) {
-        var headers = this.headers;
-        var header, name;
-        var i = headers.length;
-        while ( i-- ) {
-            header = headers[i];
-            name = header.name.toLowerCase();
-            if ( name === target ) {
-                break;
-            }
-        }
-        if ( i < 0 && !create ) {       // Header not found, don't add it
-            return false;
-        }
-        if ( i < 0 ) {                  // Header not found, add it
-            headers.push({ name: target, value: value });
-        } else if ( value === '' ) {    // Header found, remove it
-            headers.splice(i, 1);
-        } else {                        // Header found, modify it
-            header.value = value;
-        }
-        this.modified = true;
-        return true;
-    };
-    // <<<<<<<<
-    // End of: Abstraction layer to deal with request headers
-
+    var µm = µMatrix;
 
     // Normalizing request types
     // >>>>>>>>
@@ -655,30 +572,17 @@ vAPI.net.registerListeners = function() {
     var normalizeRequestDetails = function(details) {
         details.tabId = details.tabId.toString();
 
-        var type = details.type;
-
-        if ( type === 'imageset' ) {
-            details.type = 'image';
-            return;
-        }
-
         // The rest of the function code is to normalize request type
-        if ( type !== 'other' ) {
-            return;
-        }
-
-        if ( details.requestHeaders instanceof HTTPRequestHeaders ) {
-            if ( details.requestHeaders.getHeader('ping-to') !== '' ) {
-                details.type = 'ping';
-                return;
-            }
-        }
+        if ( details.type !== 'other' ) { return; }
 
         // Try to map known "extension" part of URL to request type.
         var path = µm.URI.pathFromURI(details.url),
             pos = path.indexOf('.', path.length - 6);
-        if ( pos !== -1 && (type = extToTypeMap.get(path.slice(pos + 1))) ) {
-            details.type = type;
+        if ( pos !== -1 ) {
+            var type = extToTypeMap.get(path.slice(pos + 1));
+            if ( type !== undefined ) {
+                details.type = type;
+            }
         }
     };
     // <<<<<<<<
@@ -689,17 +593,9 @@ vAPI.net.registerListeners = function() {
     var onBeforeRequestClient = this.onBeforeRequest.callback;
     chrome.webRequest.onBeforeRequest.addListener(
         function(details) {
-            if ( reNetworkURL.test(details.url) ) {
-                normalizeRequestDetails(details);
-                return onBeforeRequestClient(details);
-            }
+            normalizeRequestDetails(details);
+            return onBeforeRequestClient(details);
         },
-        //function(details) {
-        //    quickProfiler.start('onBeforeRequest');
-        //    var r = onBeforeRequest(details);
-        //    quickProfiler.stop();
-        //    return r;
-        //},
         {
             'urls': this.onBeforeRequest.urls || [ '<all_urls>' ],
             'types': this.onBeforeRequest.types || undefined
@@ -709,16 +605,8 @@ vAPI.net.registerListeners = function() {
 
     var onBeforeSendHeadersClient = this.onBeforeSendHeaders.callback;
     var onBeforeSendHeaders = function(details) {
-        details.requestHeaders = httpRequestHeadersFactory(details.requestHeaders);
         normalizeRequestDetails(details);
-        var result = onBeforeSendHeadersClient(details);
-        if ( typeof result === 'object' ) {
-            return result;
-        }
-        var modifiedHeaders = details.requestHeaders.dispose();
-        if ( modifiedHeaders !== null ) {
-            return { requestHeaders: modifiedHeaders };
-        }
+        return onBeforeSendHeadersClient(details);
     };
     chrome.webRequest.onBeforeSendHeaders.addListener(
         onBeforeSendHeaders,

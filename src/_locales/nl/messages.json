@@ -108,11 +108,15 @@
         "description": "Appears in the metadata row of bottom-most group: **mind the limited width**"
     },
     "matrixSwitchNoMixedContent": {
-        "message": "Strict HTTPS",
+        "message": "Gemengde inhoud blokkeren",
+        "description": "A menu entry in the matrix popup"
+    },
+    "matrixSwitchNoWorker": {
+        "message": "Web workers blokkeren",
         "description": "A menu entry in the matrix popup"
     },
     "matrixSwitchReferrerSpoof": {
-        "message": "Referer vervalsen",
+        "message": "<code>Referer<\/code>-header vervalsen",
         "description": "A menu entry in the matrix popup"
     },
     "matrixSwitchNoscriptSpoof": {
@@ -334,6 +338,10 @@
     "settingsCollapseBlocked": {
         "message": "Tijdelijke aanduiding van geblokkeerde elementen samenvouwen",
         "description": "English: Collapse placeholder of blocked elements"
+    },
+    "settingsCollapseBlacklisted": {
+        "message": "Tijdelijke aanduiding van geblackliste elementen samenvouwen",
+        "description": "A setting in the dashboard's Settings pane: 'blacklisted' means 'for which there is a specific block rule', 'specific' means 'a rule for which the destination hostname is not `*`'"
     },
     "settingsNoscriptTagsSpoofed": {
         "message": "<code><noscript><\/code>-tags vervalsen wanneer scripts van het huidige domein worden geblokkeerd",

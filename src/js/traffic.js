@@ -19,8 +19,6 @@
     Home: https://github.com/gorhill/uMatrix
 */
 
-/* jshint boss: true */
-
 'use strict';
 
 /******************************************************************************/
@@ -76,30 +74,19 @@ var onBeforeRootFrameRequestHandler = function(details) {
 
 var onBeforeRequestHandler = function(details) {
     var µm = µMatrix,
-        µmuri = µm.URI;
+        µmuri = µm.URI,
+        requestURL = details.url,
+        requestScheme = µmuri.schemeFromURI(requestURL);
 
-    // rhill 2014-02-17: Ignore 'filesystem:': this can happen when listening
-    // to 'chrome-extension://'.
-    var requestScheme = µmuri.schemeFromURI(details.url);
-    if ( requestScheme === 'filesystem' ) {
-        return;
-    }
+    if ( µmuri.isNetworkScheme(requestScheme) === false ) { return; }
 
     var requestType = requestTypeNormalizer[details.type] || 'other';
 
     // https://github.com/gorhill/httpswitchboard/issues/303
     // Wherever the main doc comes from, create a receiver page URL: synthetize
     // one if needed.
-    if ( requestType === 'doc' && details.parentFrameId < 0 ) {
+    if ( requestType === 'doc' && details.parentFrameId === -1 ) {
         return onBeforeRootFrameRequestHandler(details);
-    }
-
-    var requestURL = details.url;
-
-    // Ignore non-network schemes
-    if ( µmuri.isNetworkScheme(requestScheme) === false ) {
-        µm.logger.writeOne('', 'info', 'request not processed: ' + requestURL);
-        return;
     }
 
     // Re-classify orphan HTTP requests as behind-the-scene requests. There is
@@ -109,23 +96,19 @@ var onBeforeRequestHandler = function(details) {
     // to scope on unknown scheme? Etc.
     // https://github.com/gorhill/httpswitchboard/issues/191
     // https://github.com/gorhill/httpswitchboard/issues/91#issuecomment-37180275
-    var tabContext = µm.tabContextManager.mustLookup(details.tabId);
-    var tabId = tabContext.tabId;
-    var rootHostname = tabContext.rootHostname;
+    var tabContext = µm.tabContextManager.mustLookup(details.tabId),
+        tabId = tabContext.tabId,
+        rootHostname = tabContext.rootHostname,
+        specificity = 0;
 
-    // Enforce strict secure connection?
-    var block = false;
-    if (
-        tabContext.secure &&
-        µmuri.isSecureScheme(requestScheme) === false &&
-        µm.tMatrix.evaluateSwitchZ('https-strict', rootHostname)
-    ) {
-        block = true;
-    }
-
-    // Disallow request as per temporary matrix?
-    if ( block === false ) {
-        block = µm.mustBlock(rootHostname, µmuri.hostnameFromURI(requestURL), requestType);
+    // Filter through matrix
+    var block = µm.tMatrix.mustBlock(
+        rootHostname,
+        µmuri.hostnameFromURI(requestURL),
+        requestType
+    );
+    if ( block ) {
+        specificity = µm.tMatrix.specificityRegister;
     }
 
     // Record request.
@@ -135,19 +118,22 @@ var onBeforeRequestHandler = function(details) {
     // been constructed for logging purpose. Use this synthetic URL if
     // it is available.
     var pageStore = µm.mustPageStoreFromTabId(tabId);
+
+    // Enforce strict secure connection?
+    if ( tabContext.secure && µmuri.isSecureScheme(requestScheme) === false ) {
+        pageStore.hasMixedContent = true;
+        if ( block === false ) {
+            block = µm.tMatrix.evaluateSwitchZ('https-strict', rootHostname);
+        }
+    }
+
     pageStore.recordRequest(requestType, requestURL, block);
     µm.logger.writeOne(tabId, 'net', rootHostname, requestURL, details.type, block);
 
-    // Allowed?
-    if ( !block ) {
-        // console.debug('onBeforeRequestHandler()> ALLOW "%s": %o', details.url, details);
-        return;
+    if ( block ) {
+        pageStore.cacheBlockedCollapsible(requestType, requestURL, specificity);
+        return { 'cancel': true };
     }
-
-    // Blocked
-    // console.debug('onBeforeRequestHandler()> BLOCK "%s": %o', details.url, details);
-
-    return { 'cancel': true };
 };
 
 /******************************************************************************/
@@ -155,12 +141,13 @@ var onBeforeRequestHandler = function(details) {
 // Sanitize outgoing headers as per user settings.
 
 var onBeforeSendHeadersHandler = function(details) {
-    var µm = µMatrix;
+    var µm = µMatrix,
+        µmuri = µm.URI,
+        requestURL = details.url,
+        requestScheme = µmuri.schemeFromURI(requestURL);
 
     // Ignore non-network schemes
-    if ( µm.URI.isNetworkScheme(details.url) === false ) {
-        return;
-    }
+    if ( µmuri.isNetworkScheme(requestScheme) === false ) { return; }
 
     // Re-classify orphan HTTP requests as behind-the-scene requests. There is
     // not much else which can be done, because there are URLs
@@ -169,8 +156,11 @@ var onBeforeSendHeadersHandler = function(details) {
     // to scope on unknown scheme? Etc.
     // https://github.com/gorhill/httpswitchboard/issues/191
     // https://github.com/gorhill/httpswitchboard/issues/91#issuecomment-37180275
-    var pageStore = µm.mustPageStoreFromTabId(details.tabId);
-    var tabId = pageStore.tabId;
+    var tabId = details.tabId,
+        pageStore = µm.mustPageStoreFromTabId(tabId),
+        requestType = requestTypeNormalizer[details.type] || 'other',
+        requestHeaders = details.requestHeaders,
+        headerIndex, headerValue;
 
     // https://github.com/gorhill/httpswitchboard/issues/342
     // Is this hyperlink auditing?
@@ -193,13 +183,12 @@ var onBeforeSendHeadersHandler = function(details) {
     // With hyperlink-auditing, removing header(s) is pointless, the whole
     // request must be cancelled.
 
-    var requestURL = details.url;
-    var requestType = requestTypeNormalizer[details.type] || 'other';
-    if ( requestType === 'ping' ) {
-        var linkAuditor = details.requestHeaders.getHeader('ping-to');
-        if ( linkAuditor !== '' ) {
+    headerIndex = headerIndexFromName('ping-to', requestHeaders);
+    if ( headerIndex !== -1 ) {
+        headerValue = requestHeaders[headerIndex].value;
+        if ( headerValue !== '' ) {
             var block = µm.userSettings.processHyperlinkAuditing;
-            pageStore.recordRequest('other', requestURL + '{Ping-To:' + linkAuditor + '}', block);
+            pageStore.recordRequest('other', requestURL + '{Ping-To:' + headerValue + '}', block);
             µm.logger.writeOne(tabId, 'net', '', requestURL, 'ping', block);
             if ( block ) {
                 µm.hyperlinkAuditingFoiledCounter += 1;
@@ -210,42 +199,30 @@ var onBeforeSendHeadersHandler = function(details) {
 
     // If we reach this point, request is not blocked, so what is left to do
     // is to sanitize headers.
-    var requestHostname = µm.URI.hostnameFromURI(requestURL);
 
-    if ( µm.mustBlock(pageStore.pageHostname, requestHostname, 'cookie') ) {
-        if ( details.requestHeaders.setHeader('cookie', '') ) {
-            µm.cookieHeaderFoiledCounter++;
+    var rootHostname = pageStore.pageHostname,
+        requestHostname = µmuri.hostnameFromURI(requestURL),
+        modified = false;
+        
+    // Process `Cookie` header.
+
+    headerIndex = headerIndexFromName('cookie', requestHeaders);
+    if (
+        headerIndex !== -1 &&
+        µm.mustBlock(rootHostname, requestHostname, 'cookie')
+    ) {
+        modified = true;
+        headerValue = requestHeaders[headerIndex].value;
+        requestHeaders.splice(headerIndex, 1);
+        µm.cookieHeaderFoiledCounter++;
+        if ( requestType === 'doc' ) {
+            µm.logger.writeOne(tabId, 'net', '', headerValue, 'COOKIE', true);
         }
     }
 
-    if ( µm.tMatrix.evaluateSwitchZ('referrer-spoof', pageStore.pageHostname) ) {
-        foilRefererHeaders(µm, requestHostname, details);
-    }
-};
+    // Process `Referer` header.
 
-/******************************************************************************/
-
-var foilRefererHeaders = function(µm, toHostname, details) {
-    var foiled = false;
-    var µmuri = µm.URI;
-    var scheme = '';
-    var toDomain = '';
-
-    var referer = details.requestHeaders.getHeader('referer');
-    if ( referer !== '' ) {
-        toDomain = toDomain || µmuri.domainFromHostname(toHostname);
-        if ( toDomain !== µmuri.domainFromURI(referer) ) {
-            scheme = scheme || µmuri.schemeFromURI(details.url);
-            //console.debug('foilRefererHeaders()> foiled referer for "%s"', details.url);
-            //console.debug('\treferrer "%s"', header.value);
-            // https://github.com/gorhill/httpswitchboard/issues/222#issuecomment-44828402
-            details.requestHeaders.setHeader(
-                'referer',
-                scheme + '://' + toHostname + '/'
-            );
-            foiled = true;
-        }
-    }
+    // https://github.com/gorhill/httpswitchboard/issues/222#issuecomment-44828402
 
     // https://github.com/gorhill/uMatrix/issues/320
     // http://tools.ietf.org/html/rfc6454#section-7.3
@@ -258,25 +235,41 @@ var foilRefererHeaders = function(µm, toHostname, details) {
     //   "Origin header field."
 
     // https://github.com/gorhill/uMatrix/issues/358
-    // Do not spoof `Origin` header for the time being. This will be revisited.
+    //   Do not spoof `Origin` header for the time being.
 
-    //var origin = details.requestHeaders.getHeader('origin');
-    //if ( origin !== '' && origin !== 'null' ) {
-    //    toDomain = toDomain || µmuri.domainFromHostname(toHostname);
-    //    if ( toDomain !== µmuri.domainFromURI(origin) ) {
-    //        scheme = scheme || µmuri.schemeFromURI(details.url);
-    //        //console.debug('foilRefererHeaders()> foiled origin for "%s"', details.url);
-    //        //console.debug('\torigin "%s"', header.value);
-    //        details.requestHeaders.setHeader(
-    //            'origin',
-    //            scheme + '://' + toHostname
-    //        );
-    //        foiled = true;
-    //    }
-    //}
+    // https://github.com/gorhill/uMatrix/issues/773
+    //   For non-GET requests, remove `Referer` header instead of spoofing it.
 
-    if ( foiled ) {
-        µm.refererHeaderFoiledCounter++;
+    headerIndex = headerIndexFromName('referer', requestHeaders);
+    if ( headerIndex !== -1 ) {
+        headerValue = requestHeaders[headerIndex].value;
+        if ( headerValue !== '' ) {
+            var toDomain = µmuri.domainFromHostname(requestHostname);
+            if ( toDomain !== '' && toDomain !== µmuri.domainFromURI(headerValue) ) {
+                pageStore.has3pReferrer = true;
+                if ( µm.tMatrix.evaluateSwitchZ('referrer-spoof', rootHostname) ) {
+                    modified = true;
+                    var newValue;
+                    if ( details.method === 'GET' ) {
+                        newValue = requestHeaders[headerIndex].value =
+                            requestScheme + '://' + requestHostname + '/';
+                    } else {
+                        requestHeaders.splice(headerIndex, 1);
+                    }
+                    µm.refererHeaderFoiledCounter++;
+                    if ( requestType === 'doc' ) {
+                        µm.logger.writeOne(tabId, 'net', '', headerValue, 'REFERER', true);
+                        if ( newValue !== undefined ) {
+                            µm.logger.writeOne(tabId, 'net', '', newValue, 'REFERER', false);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if ( modified ) {
+        return { requestHeaders: requestHeaders };
     }
 };
 
@@ -292,14 +285,10 @@ var foilRefererHeaders = function(µm, toHostname, details) {
 
 var onHeadersReceived = function(details) {
     // Ignore schemes other than 'http...'
-    var requestURL = details.url;
-    if ( requestURL.lastIndexOf('http', 0) !== 0 ) {
-        return;
-    }
-
-    var µm = µMatrix;
-    var tabId = details.tabId;
-    var requestType = requestTypeNormalizer[details.type] || 'other';
+    var µm = µMatrix,
+        tabId = details.tabId,
+        requestURL = details.url,
+        requestType = requestTypeNormalizer[details.type] || 'other';
 
     // https://github.com/gorhill/uMatrix/issues/145
     // Check if the main_frame is a download
@@ -308,9 +297,7 @@ var onHeadersReceived = function(details) {
     }
 
     var tabContext = µm.tabContextManager.lookup(tabId);
-    if ( tabContext === null ) {
-        return;
-    }
+    if ( tabContext === null ) { return; }
 
     if ( µm.mustAllow(tabContext.rootHostname, µm.URI.hostnameFromURI(requestURL), 'script') ) {
         return;
@@ -321,20 +308,21 @@ var onHeadersReceived = function(details) {
     // We block only inline-script tags, all the external javascript will be
     // blocked by our request handler.
 
-    var csp = "script-src 'unsafe-eval' *",
+    var csp = "script-src 'unsafe-eval' blob: *",
         headers = details.responseHeaders,
         i = headerIndexFromName('content-security-policy', headers);
     // A CSP header is already present: just add our own directive as a
     // separate disposition (i.e. use comma).
     if ( i !== -1 ) {
-        csp = headers[i].value.trim() + ', ' + csp;
-        headers.splice(i, 1);
+        headers[i].value += ', ' + csp;
+    } else {
+        headers.push({ name: 'Content-Security-Policy', value: csp });
     }
 
-    // TODO: We are currently forced to add the CSP header at the end of the
-    //       headers array, because this is what the platform specific code
-    //       expect (Firefox).
-    headers.push({ name: 'Content-Security-Policy', value: csp });
+    if ( requestType === 'doc' ) {
+        µm.logger.writeOne(tabId, 'net', '', csp, 'CSP', false);
+    }
+
     return { responseHeaders: headers };
 };
 

@@ -147,8 +147,6 @@ var expandosFromNode = function(node) {
     return node;
 };
 
-var messager = vAPI.messaging.channel('popup.js');
-
 /******************************************************************************/
 /******************************************************************************/
 
@@ -158,7 +156,7 @@ function getUserSetting(setting) {
 
 function setUserSetting(setting, value) {
     matrixSnapshot.userSettings[setting] = value;
-    messager.send({
+    vAPI.messaging.send('popup.js', {
         what: 'userSettings',
         name: setting,
         value: value
@@ -518,7 +516,7 @@ function handleFilter(button, leaning) {
         desHostname: desHostname,
         type: type
     };
-    messager.send(request, updateMatrixSnapshot);
+    vAPI.messaging.send('popup.js', request, updateMatrixSnapshot);
 }
 
 function handleWhitelistFilter(button) {
@@ -1136,7 +1134,7 @@ function initScopeCell() {
         tld = matrixSnapshot.domain.slice(pos + 1);
         labels = matrixSnapshot.hostname.slice(0, -tld.length);
     }
-    var beg = 0, span;
+    var beg = 0, span, label;
     while ( beg < labels.length ) {
         pos = labels.indexOf('.', beg);
         if ( pos === -1 ) {
@@ -1144,18 +1142,22 @@ function initScopeCell() {
         } else {
             pos += 1;
         }
-        span = document.createElement('span');
-        span.setAttribute('data-scope', labels.slice(beg) + tld);
-        span.appendChild(
+        label = document.createElement('span');
+        label.appendChild(
             document.createTextNode(punycode.toUnicode(labels.slice(beg, pos)))
         );
+        span = document.createElement('span');
+        span.setAttribute('data-scope', labels.slice(beg) + tld);
+        span.appendChild(label);
         specificScope.appendChild(span);
         beg = pos;
     }
     if ( tld !== '' ) {
+        label = document.createElement('span');
+        label.appendChild(document.createTextNode(punycode.toUnicode(tld)));
         span = document.createElement('span');
         span.setAttribute('data-scope', tld);
-        span.appendChild(document.createTextNode(punycode.toUnicode(tld)));
+        span.appendChild(label);
         specificScope.appendChild(span);
     }
     updateScopeCell();
@@ -1183,36 +1185,44 @@ function updateMatrixSwitches() {
         enabled,
         switches = matrixSnapshot.tSwitches;
     for ( var switchName in switches ) {
-        if ( switches.hasOwnProperty(switchName) === false ) {
-            continue;
-        }
+        if ( switches.hasOwnProperty(switchName) === false ) { continue; }
         enabled = switches[switchName];
         if ( enabled && switchName !== 'matrix-off' ) {
             count += 1;
         }
         uDom('#mtxSwitch_' + switchName).toggleClass('switchTrue', enabled);
     }
-    uDom('#buttonMtxSwitches').descendants('span.badge').text(count.toLocaleString());
-    count = matrixSnapshot.blockedCount;
-    var button = uDom('#mtxSwitch_matrix-off');
-    button.descendants('span.badge').text(count.toLocaleString());
-    button.attr('data-tip', button.attr('data-tip').replace('{{count}}', count));
-    uDom('body').toggleClass('powerOff', switches['matrix-off']);
+    uDom.nodeFromId('mtxSwitch_https-strict').classList.toggle(
+        'relevant',
+        matrixSnapshot.hasMixedContent
+    );
+    uDom.nodeFromId('mtxSwitch_referrer-spoof').classList.toggle(
+        'relevant',
+        matrixSnapshot.has3pReferrer
+    );
+    uDom.nodeFromId('mtxSwitch_noscript-spoof').classList.toggle(
+        'relevant',
+        matrixSnapshot.hasNoscriptTags
+    );
+    uDom.nodeFromSelector('#buttonMtxSwitches span.badge').textContent =
+        count.toLocaleString();
+    uDom.nodeFromSelector('#mtxSwitch_matrix-off span.badge').textContent =
+        matrixSnapshot.blockedCount.toLocaleString();
+    document.body.classList.toggle('powerOff', switches['matrix-off']);
 }
 
 function toggleMatrixSwitch(ev) {
+    if ( ev.target.localName === 'a' ) { return; }
     var elem = ev.currentTarget;
     var pos = elem.id.indexOf('_');
-    if ( pos === -1 ) {
-        return;
-    }
+    if ( pos === -1 ) { return; }
     var switchName = elem.id.slice(pos + 1);
     var request = {
         what: 'toggleMatrixSwitch',
         switchName: switchName,
         srcHostname: matrixSnapshot.scope
     };
-    messager.send(request, updateMatrixSnapshot);
+    vAPI.messaging.send('popup.js', request, updateMatrixSnapshot);
 }
 
 /******************************************************************************/
@@ -1237,7 +1247,7 @@ function persistMatrix() {
         what: 'applyDiffToPermanentMatrix',
         diff: matrixSnapshot.diff
     };
-    messager.send(request, updateMatrixSnapshot);
+    vAPI.messaging.send('popup.js', request, updateMatrixSnapshot);
 }
 
 /******************************************************************************/
@@ -1250,7 +1260,7 @@ function revertMatrix() {
         what: 'applyDiffToTemporaryMatrix',
         diff: matrixSnapshot.diff
     };
-    messager.send(request, updateMatrixSnapshot);
+    vAPI.messaging.send('popup.js', request, updateMatrixSnapshot);
 }
 
 /******************************************************************************/
@@ -1269,14 +1279,14 @@ function revertAll() {
     var request = {
         what: 'revertTemporaryMatrix'
     };
-    messager.send(request, updateMatrixSnapshot);
+    vAPI.messaging.send('popup.js', request, updateMatrixSnapshot);
     dropDownMenuHide();
 }
 
 /******************************************************************************/
 
 function buttonReloadHandler(ev) {
-    messager.send({
+    vAPI.messaging.send('popup.js', {
         what: 'forceReloadTab',
         tabId: matrixSnapshot.tabId,
         bypassCache: ev.shiftKey
@@ -1298,7 +1308,7 @@ function mouseleaveMatrixCellHandler() {
 function gotoExtensionURL(ev) {
     var url = uDom(ev.currentTarget).attr('data-extension-url');
     if ( url ) {
-        messager.send({
+        vAPI.messaging.send('popup.js', {
             what: 'gotoExtensionURL',
             url: url,
             shiftKey: ev.shiftKey
@@ -1312,18 +1322,20 @@ function gotoExtensionURL(ev) {
 
 function dropDownMenuShow(ev) {
     var button = ev.target;
-    var menu = button.nextElementSibling;
+    var menuOverlay = document.getElementById(button.getAttribute('data-dropdown-menu'));
     var butnRect = button.getBoundingClientRect();
     var viewRect = document.body.getBoundingClientRect();
     var butnNormalLeft = butnRect.left / (viewRect.width - butnRect.width);
-    menu.classList.add('show');
+    menuOverlay.classList.add('show');
+    var menu = menuOverlay.querySelector('.dropdown-menu');
     var menuRect = menu.getBoundingClientRect();
     var menuLeft = butnNormalLeft * (viewRect.width - menuRect.width);
     menu.style.left = menuLeft.toFixed(0) + 'px';
+    menu.style.top = butnRect.bottom + 'px';
 }
 
 function dropDownMenuHide() {
-    uDom('.dropdown-menu').removeClass('show');
+    uDom('.dropdown-menu-capture').removeClass('show');
 }
 
 /******************************************************************************/
@@ -1406,7 +1418,7 @@ var matrixSnapshotPoller = (function() {
 
     var pollNow = function() {
         unpollAsync();
-        messager.send({
+        vAPI.messaging.send('popup.js', {
             what: 'matrixSnapshot',
             tabId: matrixSnapshot.tabId,
             scope: matrixSnapshot.scope,
@@ -1461,7 +1473,7 @@ var matrixSnapshotPoller = (function() {
             pollAsync();
         };
 
-        messager.send({
+        vAPI.messaging.send('popup.js', {
             what: 'matrixSnapshot',
             tabId: tabId
         }, snapshotFetched);
@@ -1504,7 +1516,7 @@ uDom('#buttonRevertAll').on('click', revertAll);
 uDom('#buttonReload').on('click', buttonReloadHandler);
 uDom('.extensionURL').on('click', gotoExtensionURL);
 
-uDom('body').on('click', '.dropdown-menu-button', dropDownMenuShow);
+uDom('body').on('click', '[data-dropdown-menu]', dropDownMenuShow);
 uDom('body').on('click', '.dropdown-menu-capture', dropDownMenuHide);
 
 uDom('#matList').on('click', '.g4Meta', function(ev) {

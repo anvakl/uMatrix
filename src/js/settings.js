@@ -19,8 +19,7 @@
     Home: https://github.com/gorhill/uMatrix
 */
 
-/* global vAPI, uDom */
-/* jshint multistr: true */
+/* global uDom */
 
 'use strict';
 
@@ -30,14 +29,12 @@
 
 /******************************************************************************/
 
-var messager = vAPI.messaging.channel('settings.js');
-
 var cachedSettings = {};
 
 /******************************************************************************/
 
 function changeUserSettings(name, value) {
-    messager.send({
+    vAPI.messaging.send('settings.js', {
         what: 'userSettings',
         name: name,
         value: value
@@ -47,7 +44,7 @@ function changeUserSettings(name, value) {
 /******************************************************************************/
 
 function changeMatrixSwitch(name, state) {
-    messager.send({
+    vAPI.messaging.send('settings.js', {
         what: 'setMatrixSwitch',
         switchName: name,
         state: state
@@ -56,16 +53,16 @@ function changeMatrixSwitch(name, state) {
 
 /******************************************************************************/
 
-function onChangeValueHandler(uelem, setting, min, max) {
+function onChangeValueHandler(elem, setting, min, max) {
     var oldVal = cachedSettings.userSettings[setting];
-    var newVal = Math.round(parseFloat(uelem.val()));
+    var newVal = Math.round(parseFloat(elem.value));
     if ( typeof newVal !== 'number' ) {
         newVal = oldVal;
     } else {
         newVal = Math.max(newVal, min);
         newVal = Math.min(newVal, max);
     }
-    uelem.val(newVal);
+    elem.value = newVal;
     if ( newVal !== oldVal ) {
         changeUserSettings(setting, newVal);
     }
@@ -74,50 +71,89 @@ function onChangeValueHandler(uelem, setting, min, max) {
 /******************************************************************************/
 
 function prepareToDie() {
-    onChangeValueHandler(uDom('#delete-unused-session-cookies-after'), 'deleteUnusedSessionCookiesAfter', 15, 1440);
-    onChangeValueHandler(uDom('#clear-browser-cache-after'), 'clearBrowserCacheAfter', 15, 1440);
+    onChangeValueHandler(
+        uDom.nodeFromId('deleteUnusedSessionCookiesAfter'),
+        'deleteUnusedSessionCookiesAfter',
+        15, 1440
+    );
+    onChangeValueHandler(
+        uDom.nodeFromId('clearBrowserCacheAfter'),
+        'clearBrowserCacheAfter',
+        15, 1440
+    );
 }
 
 /******************************************************************************/
 
-var installEventHandlers = function() {
-    uDom('input[name="displayTextSize"]').on('change', function(){
-        changeUserSettings('displayTextSize', this.value);
-    });
+function onInputChanged(ev) {
+    var target = ev.target;
 
-    uDom('#popupScopeLevel').on('change', function(){
-        changeUserSettings('popupScopeLevel', this.value);
-    });
+    switch ( target.id ) {
+    case 'displayTextSize':
+        changeUserSettings('displayTextSize', target.value + 'px');
+        break;
+    case 'clearBrowserCache':
+    case 'cloudStorageEnabled':
+    case 'collapseBlacklisted':
+    case 'collapseBlocked':
+    case 'colorBlindFriendly':
+    case 'deleteCookies':
+    case 'deleteLocalStorage':
+    case 'deleteUnusedSessionCookies':
+    case 'iconBadgeEnabled':
+    case 'processHyperlinkAuditing':
+        changeUserSettings(target.id, target.checked);
+        break;
+    case 'noMixedContent':
+    case 'noscriptTagsSpoofed':
+    case 'processReferer':
+        changeMatrixSwitch(
+            target.getAttribute('data-matrix-switch'),
+            target.checked
+        );
+        break;
+    case 'deleteUnusedSessionCookiesAfter':
+        onChangeValueHandler(target, 'deleteUnusedSessionCookiesAfter', 15, 1440);
+        break;
+    case 'clearBrowserCacheAfter':
+        onChangeValueHandler(target, 'clearBrowserCacheAfter', 15, 1440);
+        break;
+    case 'popupScopeLevel':
+        changeUserSettings('popupScopeLevel', target.value);
+        break;
+    default:
+        break;
+    }
 
-    uDom('[data-setting-bool]').on('change', function(){
-        var settingName = this.getAttribute('data-setting-bool');
-        if ( typeof settingName === 'string' && settingName !== '' ) {
-            changeUserSettings(settingName, this.checked);
-        }
-    });
-
-    uDom('[data-matrix-switch]').on('change', function(){
-        var switchName = this.getAttribute('data-matrix-switch');
-        if ( typeof switchName === 'string' && switchName !== '' ) {
-            changeMatrixSwitch(switchName, this.checked);
-        }
-    });
-
-    uDom('#delete-unused-session-cookies-after').on('change', function(){
-        onChangeValueHandler(uDom(this), 'deleteUnusedSessionCookiesAfter', 15, 1440);
-    });
-    uDom('#clear-browser-cache-after').on('change', function(){
-        onChangeValueHandler(uDom(this), 'clearBrowserCacheAfter', 15, 1440);
-    });
-
-    // https://github.com/gorhill/httpswitchboard/issues/197
-    uDom(window).on('beforeunload', prepareToDie);
-};
+    switch ( target.id ) {
+    case 'collapseBlocked':
+        synchronizeWidgets();
+        break;
+    default:
+        break;
+    }
+}
 
 /******************************************************************************/
 
-uDom.onLoad(function() {
-    var onSettingsReceived = function(settings) {
+function synchronizeWidgets() {
+    var e1, e2;
+
+    e1 = uDom.nodeFromId('collapseBlocked');
+    e2 = uDom.nodeFromId('collapseBlacklisted');
+    if ( e1.checked ) {
+        e2.setAttribute('disabled', '');
+    } else {
+        e2.removeAttribute('disabled');
+    }
+}
+
+/******************************************************************************/
+
+vAPI.messaging.send(
+    'settings.js',
+    { what: 'getUserSettings' },
+    function onSettingsReceived(settings) {
         // Cache copy
         cachedSettings = settings;
 
@@ -125,10 +161,7 @@ uDom.onLoad(function() {
         var matrixSwitches = settings.matrixSwitches;
 
         uDom('[data-setting-bool]').forEach(function(elem){
-            var settingName = elem.attr('data-setting-bool');
-            if ( typeof settingName === 'string' && settingName !== '' ) {
-                elem.prop('checked', userSettings[settingName] === true);
-            }
+            elem.prop('checked', userSettings[elem.prop('id')] === true);
         });
 
         uDom('[data-matrix-switch]').forEach(function(elem){
@@ -138,19 +171,23 @@ uDom.onLoad(function() {
             }
         });
 
-        uDom('input[name="displayTextSize"]').forEach(function(elem) {
-            elem.prop('checked', elem.val() === userSettings.displayTextSize);
-        });
+        uDom.nodeFromId('displayTextSize').value =
+            parseInt(userSettings.displayTextSize, 10) || 14;
 
         uDom.nodeFromId('popupScopeLevel').value = userSettings.popupScopeLevel;
+        uDom.nodeFromId('deleteUnusedSessionCookiesAfter').value =
+            userSettings.deleteUnusedSessionCookiesAfter;
+        uDom.nodeFromId('clearBrowserCacheAfter').value =
+            userSettings.clearBrowserCacheAfter;
 
-        uDom('#delete-unused-session-cookies-after').val(userSettings.deleteUnusedSessionCookiesAfter);
-        uDom('#clear-browser-cache-after').val(userSettings.clearBrowserCacheAfter);
+        synchronizeWidgets();
 
-        installEventHandlers();
-    };
-    messager.send({ what: 'getUserSettings' }, onSettingsReceived);
-});
+        document.addEventListener('change', onInputChanged);
+
+        // https://github.com/gorhill/httpswitchboard/issues/197
+        uDom(window).on('beforeunload', prepareToDie);
+    }
+);
 
 /******************************************************************************/
 
