@@ -1,7 +1,7 @@
 /*******************************************************************************
 
-    uMatrix - a Chromium browser extension to black/white list requests.
-    Copyright (C) 2013-2017 Raymond Hill
+    uMatrix - a browser extension to black/white list requests.
+    Copyright (C) 2013-2018 Raymond Hill
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@ var BlockedCollapsibles = function() {
     this.blocked = new Map();
     this.hash = 0;
     this.timer = null;
+    this.tOrigin = Date.now();
 };
 
 BlockedCollapsibles.prototype = {
@@ -44,17 +45,17 @@ BlockedCollapsibles.prototype = {
 
     add: function(type, url, isSpecific) {
         if ( this.blocked.size === 0 ) { this.pruneAsync(); }
-        var now = Date.now() / 1000 | 0;
+        let tStamp = Date.now() - this.tOrigin;
         // The following "trick" is to encode the specifity into the lsb of the
         // time stamp so as to avoid to have to allocate a memory structure to
         // store both time stamp and specificity.
         if ( isSpecific ) {
-            now |= 0x00000001;
+            tStamp |= 0x00000001;
         } else {
-            now &= 0xFFFFFFFE;
+            tStamp &= 0xFFFFFFFE;
         }
-        this.blocked.set(type + ' ' + url, now);
-        this.hash = now;
+        this.blocked.set(type + ' ' + url, tStamp);
+        this.hash += 1;
     },
 
     reset: function() {
@@ -64,6 +65,7 @@ BlockedCollapsibles.prototype = {
             clearTimeout(this.timer);
             this.timer = null;
         }
+        this.tOrigin = Date.now();
     },
 
     pruneAsync: function() {
@@ -77,13 +79,17 @@ BlockedCollapsibles.prototype = {
 
     pruneAsyncCallback: function() {
         this.timer = null;
-        var obsolete = Date.now() - this.shelfLife;
-        for ( var entry of this.blocked ) {
-            if ( entry[1] <= obsolete ) {
+        let tObsolete = Date.now() - this.tOrigin - this.shelfLife;
+        for ( let entry of this.blocked ) {
+            if ( entry[1] <= tObsolete ) {
                 this.blocked.delete(entry[0]);
             }
         }
-        if ( this.blocked.size !== 0 ) { this.pruneAsync(); }
+        if ( this.blocked.size !== 0 ) {
+            this.pruneAsync();
+        } else {
+            this.tOrigin = Date.now();
+        }
     }
 };
 
@@ -110,7 +116,7 @@ PageStore.prototype = {
 
     init: function(tabContext) {
         this.tabId = tabContext.tabId;
-        this.rawUrl = tabContext.rawURL;
+        this.rawURL = tabContext.rawURL;
         this.pageUrl = tabContext.normalURL;
         this.pageHostname = tabContext.rootHostname;
         this.pageDomain =  tabContext.rootDomain;
@@ -123,6 +129,7 @@ PageStore.prototype = {
         this.distinctRequestCount = 0;
         this.perLoadAllowedRequestCount = 0;
         this.perLoadBlockedRequestCount = 0;
+        this.perLoadBlockedReferrerCount = 0;
         this.has3pReferrer = false;
         this.hasMixedContent = false;
         this.hasNoscriptTags = false;
@@ -134,7 +141,8 @@ PageStore.prototype = {
     },
 
     dispose: function() {
-        this.rawUrl = '';
+        this.tabId = '';
+        this.rawURL = '';
         this.pageUrl = '';
         this.pageHostname = '';
         this.pageDomain = '';
@@ -166,36 +174,32 @@ PageStore.prototype = {
         var tabContext = µm.tabContextManager.lookup(this.tabId);
         if ( tabContext === null ) { return; }
 
-        var collapseBlacklisted = µm.userSettings.collapseBlacklisted,
-            collapseBlocked = µm.userSettings.collapseBlocked,
-            entry;
-
-        var blockedResources = response.blockedResources;
-
         if (
             Array.isArray(request.toFilter) &&
             request.toFilter.length !== 0
         ) {
-            var roothn = tabContext.rootHostname,
+            let roothn = tabContext.rootHostname,
                 hnFromURI = µm.URI.hostnameFromURI,
                 tMatrix = µm.tMatrix;
-            for ( entry of request.toFilter ) {
-                if ( tMatrix.mustBlock(roothn, hnFromURI(entry.url), entry.type) === false ) {
-                    continue;
+            for ( let entry of request.toFilter ) {
+                if ( tMatrix.mustBlock(roothn, hnFromURI(entry.url), entry.type) ) {
+                    this.blockedCollapsibles.add(
+                        entry.type,
+                        entry.url,
+                        tMatrix.specificityRegister < 5
+                    );
                 }
-                blockedResources.push([
-                    entry.type + ' ' + entry.url,
-                    collapseBlocked ||
-                    collapseBlacklisted && tMatrix.specificityRegister !== 0 &&
-                    tMatrix.specificityRegister < 5
-                ]);
             }
         }
 
         if ( this.blockedCollapsibles.hash === response.hash ) { return; }
         response.hash = this.blockedCollapsibles.hash;
 
-        for ( entry of this.blockedCollapsibles.blocked ) {
+        let collapseBlacklisted = µm.userSettings.collapseBlacklisted,
+            collapseBlocked = µm.userSettings.collapseBlocked,
+            blockedResources = response.blockedResources;
+
+        for ( let entry of this.blockedCollapsibles.blocked ) {
             blockedResources.push([
                 entry[0],
                 collapseBlocked || collapseBlacklisted && (entry[1] & 1) !== 0
@@ -204,6 +208,12 @@ PageStore.prototype = {
     },
 
     recordRequest: function(type, url, block) {
+        if ( block ) {
+            this.perLoadBlockedRequestCount++;
+        } else {
+            this.perLoadAllowedRequestCount++;
+        }
+
         // Store distinct network requests. This is used to:
         // - remember which hostname/type were seen
         // - count the number of distinct URLs for any given
@@ -227,12 +237,6 @@ PageStore.prototype = {
         // If it is recorded locally, record globally
         µm.requestStats.record(type, block);
         µm.updateBadgeAsync(this.tabId);
-
-        if ( block !== false ) {
-            this.perLoadBlockedRequestCount++;
-        } else {
-            this.perLoadAllowedRequestCount++;
-        }
 
         this.distinctRequestCount++;
         this.mtxCountModifiedTime = Date.now();

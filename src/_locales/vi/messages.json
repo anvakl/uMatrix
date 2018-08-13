@@ -32,7 +32,7 @@
         "description": "a tab in dashboard"
     },
     "ubiquitousRulesPageName": {
-        "message": "Tập tin máy chủ",
+        "message": "Assets",
         "description": "a tab in dashboard"
     },
     "rawSettingsPageName": {
@@ -86,6 +86,14 @@
     "matrixNoNetTrafficPrompt": {
         "message": "Chưa phát hiện lưu lượng mạng trong thẻ này.",
         "description": ""
+    },
+    "matrixLocalScopeTip": {
+        "message": "Select a local scope to see\/create rules which apply only in that scope",
+        "description": "Tool tip for the local scope button"
+    },
+    "matrixGlobalScopeTip": {
+        "message": "Select the global scope to see\/create rules which apply everywhere",
+        "description": "Tool tip for the global scope button"
     },
     "matrixMtxButtonTip": {
         "message": "Vô hiệu\/kích hoạt lọc ma trận cho phạm vi này.\nYêu cầu đã chặn thông qua lọc ma trận trên trang này: {{count}}.",
@@ -142,6 +150,14 @@
     "matrixNoTabFound": {
         "message": "No web page found",
         "description": "Displays in place of matrix when no data is found for the current page"
+    },
+    "matrixRecipeImportTip": {
+        "message": "Import rules",
+        "description": "Used as a tooltip for the recipe import button"
+    },
+    "matrixRecipeSaveTip": {
+        "message": "Save rules",
+        "description": "Used as a tooltip for the recipe padlock button"
     },
     "statsPageTitle": {
         "message": "Thống kê µMatrix",
@@ -275,12 +291,8 @@
         "message": "Cỡ chữ:",
         "description": ""
     },
-    "settingsMatrixDisplayTextSizeNormal": {
-        "message": "Thường",
-        "description": ""
-    },
-    "settingsMatrixDisplayTextSizeLarge": {
-        "message": "Lớn",
+    "settingsIconBadgeEnabled": {
+        "message": "Hiển thị số lượng yêu cầu riêng biệt trên biểu tượng",
         "description": ""
     },
     "settingsMatrixDisplayColorBlind": {
@@ -307,38 +319,6 @@
         "message": "Site",
         "description": "Scope will be full hostname of site"
     },
-    "settingsMatrixAutoReloadPrompt": {
-        "message": "Khi đã đóng ma trận, tải lại thông minh những thẻ này:",
-        "description": ""
-    },
-    "settingsMatrixAutoReloadNone": {
-        "message": "Không có",
-        "description": ""
-    },
-    "settingsMatrixAutoReloadCurrent": {
-        "message": "Hiện tại",
-        "description": ""
-    },
-    "settingsMatrixAutoReloadAll": {
-        "message": "Tất cả",
-        "description": ""
-    },
-    "settingsMatrixAutoReloadInfo": {
-        "message": "Bất cứ khi nào bạn tạo ra thay đổi trong ma trận có thể ảnh hưởng đến việc hiển thị và\/hoặc hành vi của một hoặc nhiều trang, <i>µMatrix<\/i> sẽ tự tải lại trang được ảnh hưởng khi bạn đóng ma trận.",
-        "description": ""
-    },
-    "settingsSubframeColor": {
-        "message": "Đã chặn frame:&ensp;Màu",
-        "description": "English: Blocked frames:&ensp;Color"
-    },
-    "settingsSubframeOpacity": {
-        "message": "Độ mờ",
-        "description": "English: Opacity"
-    },
-    "settingsIconBadgeEnabled": {
-        "message": "Hiển thị số lượng yêu cầu riêng biệt trên biểu tượng",
-        "description": "English: Show the number of distinct requests on the icon"
-    },
     "settingsCollapseBlocked": {
         "message": "Collapse placeholder of blocked elements",
         "description": "English: Collapse placeholder of blocked elements"
@@ -353,6 +333,10 @@
     },
     "settingsCloudStorageEnabled": {
         "message": "Enable cloud storage support",
+        "description": ""
+    },
+    "settingsMatrixNoTooltips": {
+        "message": "Disable tooltips",
         "description": ""
     },
     "privacyPageTitle": {
@@ -400,7 +384,7 @@
         "description": ""
     },
     "privacyProcessRefererPrompt": {
-        "message": "Spoof <a href='https:\/\/en.wikipedia.org\/wiki\/HTTP_referer'>HTTP referrer<\/a> string of third-party requests.",
+        "message": "Spoof <a href='https:\/\/en.wikipedia.org\/wiki\/HTTP_referer'>HTTP referrer<\/a> string of third-party requests",
         "description": ""
     },
     "privacyProcessRefererHelp": {
@@ -416,7 +400,7 @@
         "description": ""
     },
     "privacyProcessHyperlinkAuditingPrompt": {
-        "message": "Block all <a href='https:\/\/html.spec.whatwg.org\/multipage\/semantics.html#hyperlink-auditing'>hyperlink auditing<\/a> attempts.",
+        "message": "Block all <a href='https:\/\/html.spec.whatwg.org\/multipage\/semantics.html#hyperlink-auditing'>hyperlink auditing<\/a> attempts",
         "description": ""
     },
     "privacyProcessHyperlinkAuditingHelp": {
@@ -467,6 +451,10 @@
         "message": "my-umatrix-rules.txt",
         "description": "default file name to use"
     },
+    "assetsHostsSection": {
+        "message": "Hosts files",
+        "description": "header to identify the hosts files section"
+    },
     "hostsFilesPrompt": {
         "message": "Tất cả tên máy chủ trong tập tin máy chủ được nạp là tên máy chủ trong danh sách đen trong phạm vi chung.",
         "description": ""
@@ -488,7 +476,7 @@
         "description": ""
     },
     "hostsFilesAutoUpdatePrompt": {
-        "message": "Tự động cập nhật tập tin máy chủ.",
+        "message": "Auto-update assets",
         "description": ""
     },
     "hostsFilesUpdateNow": {
@@ -517,6 +505,26 @@
     },
     "hostsFilesExternalListObsolete": {
         "message": "đã cũ",
+        "description": ""
+    },
+    "assetsRecipesSection": {
+        "message": "Ruleset recipes",
+        "description": "header to identify the ruleset files section"
+    },
+    "assetsRecipesSummary": {
+        "message": "Ruleset recipes are imported from the popup panel <em>on demand<\/em>, i.e. <b>only<\/b> through user interaction.",
+        "description": ""
+    },
+    "assetsImportLabel": {
+        "message": "Import...",
+        "description": ""
+    },
+    "assetsInlineHostsLabel": {
+        "message": "My hosts",
+        "description": ""
+    },
+    "assetsInlineRecipesLabel": {
+        "message": "My recipes",
         "description": ""
     },
     "rawSettingsWarning": {

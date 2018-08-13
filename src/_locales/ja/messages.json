@@ -32,7 +32,7 @@
         "description": "a tab in dashboard"
     },
     "ubiquitousRulesPageName": {
-        "message": "ホストファイル",
+        "message": "アセット",
         "description": "a tab in dashboard"
     },
     "rawSettingsPageName": {
@@ -87,6 +87,14 @@
         "message": "このタブではネットワークトラフィックを検出できません",
         "description": ""
     },
+    "matrixLocalScopeTip": {
+        "message": "ルールを作成・表示するスコープを選択する",
+        "description": "Tool tip for the local scope button"
+    },
+    "matrixGlobalScopeTip": {
+        "message": "すべてのページに適用するルールを作成・表示する",
+        "description": "Tool tip for the global scope button"
+    },
     "matrixMtxButtonTip": {
         "message": "このスコープの Matrix フィルタの有効\/無効を切り替える",
         "description": "Tool tip for matrix button"
@@ -100,7 +108,7 @@
         "description": "Tool tip for the revert local permission button"
     },
     "matrixReloadButton": {
-        "message": "このページを再読み込みする\nShift キーを押しながら実行すると、キャッシュを無視した再読み込みを行います",
+        "message": "このページを再読み込みする。\nShift キーを押しながら実行すると、キャッシュを無視した再読み込みを行います",
         "description": "Tool tip for the reload button"
     },
     "matrix1stPartyLabel": {
@@ -143,6 +151,14 @@
         "message": "ページが見つかりません",
         "description": "Displays in place of matrix when no data is found for the current page"
     },
+    "matrixRecipeImportTip": {
+        "message": "このルールを読み込む",
+        "description": "Used as a tooltip for the recipe import button"
+    },
+    "matrixRecipeSaveTip": {
+        "message": "このルールを保存する",
+        "description": "Used as a tooltip for the recipe padlock button"
+    },
     "statsPageTitle": {
         "message": "uMatrix &ndash; 統計",
         "description": ""
@@ -152,11 +168,11 @@
         "description": ""
     },
     "statsPageCookieHeadersFoiled": {
-        "message": "拒否した <a href='https:\/\/en.wikipedia.org\/wiki\/HTTP_cookie'>Cookie<\/a> の数: {{count}}",
+        "message": "拒否した <a href='https:\/\/ja.wikipedia.org\/wiki\/HTTP_cookie'>Cookie<\/a> の数: {{count}}",
         "description": ""
     },
     "statsPageRefererHeadersFoiled": {
-        "message": "拒否した <a href='https:\/\/en.wikipedia.org\/wiki\/HTTP_referer'>リファラ<\/a> の数: {{count}}",
+        "message": "拒否した <a href='https:\/\/ja.wikipedia.org\/wiki\/HTTP%E3%83%AA%E3%83%95%E3%82%A1%E3%83%A9'>リファラ<\/a> の数: {{count}}",
         "description": ""
     },
     "statsPageHyperlinkAuditingFoiled": {
@@ -252,7 +268,7 @@
         "description": "First part of Remember the last [n] HTTP requests per page"
     },
     "statsPageLogSizePrompt2": {
-        "message": "<b>1ページあたり<\/b> の HTTP 要求",
+        "message": "個の HTTP リクエストを記録する",
         "description": "Second part of Remember the last [n] HTTP requests per page"
     },
     "statsPageLogSizeHelp": {
@@ -275,12 +291,8 @@
         "message": "文字の大きさ：",
         "description": ""
     },
-    "settingsMatrixDisplayTextSizeNormal": {
-        "message": "標準",
-        "description": ""
-    },
-    "settingsMatrixDisplayTextSizeLarge": {
-        "message": "大きい",
+    "settingsIconBadgeEnabled": {
+        "message": "ブロックしたリソースの数をアイコンに表示する",
         "description": ""
     },
     "settingsMatrixDisplayColorBlind": {
@@ -307,38 +319,6 @@
         "message": "サイト",
         "description": "Scope will be full hostname of site"
     },
-    "settingsMatrixAutoReloadPrompt": {
-        "message": "Matrix を閉じたとき、これらのタブを再読み込みする:",
-        "description": ""
-    },
-    "settingsMatrixAutoReloadNone": {
-        "message": "なし",
-        "description": ""
-    },
-    "settingsMatrixAutoReloadCurrent": {
-        "message": "現在",
-        "description": ""
-    },
-    "settingsMatrixAutoReloadAll": {
-        "message": "すべて",
-        "description": ""
-    },
-    "settingsMatrixAutoReloadInfo": {
-        "message": "1 ページ以上に影響を与える変更をしてから Matrix を閉じたときは、<i>uMatrix<\/i> は影響をうけるページを再読み込みします",
-        "description": ""
-    },
-    "settingsSubframeColor": {
-        "message": "ブロック中のframe:&ensp;Color",
-        "description": "English: Blocked frames:&ensp;Color"
-    },
-    "settingsSubframeOpacity": {
-        "message": "不透明度",
-        "description": "English: Opacity"
-    },
-    "settingsIconBadgeEnabled": {
-        "message": "アイコンにリクエスト数を表示する",
-        "description": "English: Show the number of distinct requests on the icon"
-    },
     "settingsCollapseBlocked": {
         "message": "ブロックした要素のプレースホルダを表示しない",
         "description": "English: Collapse placeholder of blocked elements"
@@ -353,6 +333,10 @@
     },
     "settingsCloudStorageEnabled": {
         "message": "クラウドストレージのサポートを有効にする",
+        "description": ""
+    },
+    "settingsMatrixNoTooltips": {
+        "message": "ツールチップを無効にする",
         "description": ""
     },
     "privacyPageTitle": {
@@ -400,7 +384,7 @@
         "description": ""
     },
     "privacyProcessRefererPrompt": {
-        "message": "サードパーティーリクエストの <a href='https:\/\/en.wikipedia.org\/wiki\/HTTP_referer'>HTTP リファラ<\/a> を偽装する",
+        "message": "サードパーティーリクエストの <a href='https:\/\/ja.wikipedia.org\/wiki\/HTTP%E3%83%AA%E3%83%95%E3%82%A1%E3%83%A9'>HTTP リファラ<\/a> を偽装する",
         "description": ""
     },
     "privacyProcessRefererHelp": {
@@ -467,6 +451,10 @@
         "message": "my-umatrix-rules.txt",
         "description": "default file name to use"
     },
+    "assetsHostsSection": {
+        "message": "ホストファイル",
+        "description": "header to identify the hosts files section"
+    },
     "hostsFilesPrompt": {
         "message": "ホストファイルに記載されたすべてのホストへの、あらゆるリクエストはブロックされます。",
         "description": ""
@@ -488,7 +476,7 @@
         "description": ""
     },
     "hostsFilesAutoUpdatePrompt": {
-        "message": "ホストファイルを自動で更新する",
+        "message": "アセットを自動で更新する",
         "description": ""
     },
     "hostsFilesUpdateNow": {
@@ -500,7 +488,7 @@
         "description": ""
     },
     "hostsFilesExternalListsHint": {
-        "message": "1 行にひとつずつ記述してください。&lsquo;#&rsquo; で始まる行は無視されます。無効な URL は警告なしに無視されます。",
+        "message": "追加するアセットの URL をここに書きます。\n1 行にひとつずつ書いてください。無効な URL は警告なしに無視されます。",
         "description": ""
     },
     "hostsFilesExternalListsParse": {
@@ -517,6 +505,26 @@
     },
     "hostsFilesExternalListObsolete": {
         "message": "古い",
+        "description": ""
+    },
+    "assetsRecipesSection": {
+        "message": "ルールレシピ",
+        "description": "header to identify the ruleset files section"
+    },
+    "assetsRecipesSummary": {
+        "message": "ルールレシピは、ポップアップパネルで<b>ユーザーが選択して初めて<\/b>、ルールに追加されます。",
+        "description": ""
+    },
+    "assetsImportLabel": {
+        "message": "追加...",
+        "description": ""
+    },
+    "assetsInlineHostsLabel": {
+        "message": "My ホスト",
+        "description": ""
+    },
+    "assetsInlineRecipesLabel": {
+        "message": "My ルールレシピ",
         "description": ""
     },
     "rawSettingsWarning": {
@@ -536,7 +544,7 @@
         "description": ""
     },
     "aboutPermissions": {
-        "message": "<a href='https:\/\/github.com\/gorhill\/httpswitchboard\/wiki\/Permissions'>パーミッションについて<\/a>",
+        "message": "<a href='https:\/\/github.com\/gorhill\/uMatrix\/wiki\/Permissions'>パーミッションについて<\/a>",
         "description": ""
     },
     "aboutCode": {

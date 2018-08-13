@@ -101,7 +101,9 @@ var requestStatsFactory = function() {
 */
 
 var rawSettingsDefault = {
+    contributorMode: false,
     disableCSPReportInjection: false,
+    enforceEscapedFragment: true,
     placeholderBackground:
         [
             'url("data:image/png;base64,',
@@ -165,7 +167,7 @@ return {
 
     userSettings: {
         alwaysDetachLogger: false,
-        autoUpdate: false,
+        autoUpdate: true,
         clearBrowserCache: true,
         clearBrowserCacheAfter: 60,
         cloudStorageEnabled: false,
@@ -177,14 +179,26 @@ return {
         deleteUnusedSessionCookiesAfter: 60,
         deleteLocalStorage: false,
         displayTextSize: '14px',
-        externalHostsFiles: '',
-        iconBadgeEnabled: false,
+        externalHostsFiles: [],
+        externalRecipeFiles: [],
+        iconBadgeEnabled: true,
         maxLoggedRequests: 1000,
+        noTooltips: false,
         popupCollapseAllDomains: false,
         popupCollapseBlacklistedDomains: false,
         popupScopeLevel: 'domain',
         processHyperlinkAuditing: true,
-        processReferer: false
+        processReferer: false,
+        selectedHostsFiles: [ '' ],
+        selectedRecipeFiles: [ '' ],
+        userHosts: {
+            enabled: false,
+            content: ''
+        },
+        userRecipes: {
+            enabled: false,
+            content: ''
+        }
     },
 
     rawSettingsDefault: rawSettingsDefault,
@@ -194,7 +208,8 @@ return {
     clearBrowserCacheCycle: 0,
     cspNoInlineScript: "script-src 'unsafe-eval' blob: *",
     cspNoInlineStyle: "style-src blob: *",
-    cspNoWorker: undefined,
+    cspNoWorker: "worker-src 'none'; report-uri about:blank",
+    cantMergeCSPHeaders: false,
     updateAssetsEvery: 11 * oneDay + 1 * oneHour + 1 * oneMinute + 1 * oneSecond,
     firstUpdateAfter: 11 * oneMinute,
     nextUpdateAfter: 11 * oneHour,
@@ -202,14 +217,13 @@ return {
     pslAssetKey: 'public_suffix_list.dat',
 
     // list of live hosts files
-    liveHostsFiles: {
-    },
+    liveHostsFiles: new Map(),
 
     // urls stats are kept on the back burner while waiting to be reactivated
     // in a tab or another.
-    pageStores: {},
+    pageStores: new Map(),
     pageStoresToken: 0,
-    pageStoreCemetery: {},
+    pageStoreCemetery: new Map(),
 
     // page url => permission scope
     tMatrix: null,
@@ -223,7 +237,6 @@ return {
     cookieRemovedCounter: 0,
     localStorageRemovedCounter: 0,
     cookieHeaderFoiledCounter: 0,
-    refererHeaderFoiledCounter: 0,
     hyperlinkAuditingFoiledCounter: 0,
     browserCacheClearedCounter: 0,
     storageUsed: 0,

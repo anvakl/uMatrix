@@ -1,7 +1,7 @@
 /*******************************************************************************
 
-    uMatrix - a Chromium browser extension to black/white list requests.
-    Copyright (C) 2014-2017 Raymond Hill
+    uMatrix - a browser extension to black/white list requests.
+    Copyright (C) 2014-2018 Raymond Hill
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -61,14 +61,11 @@ var onAllDone = function() {
 /******************************************************************************/
 
 var onTabsReady = function(tabs) {
-    var tab;
-    var i = tabs.length;
-    // console.debug('start.js > binding %d tabs', i);
+    let i = tabs.length;
     while ( i-- ) {
-        tab = tabs[i];
+        let tab = tabs[i];
         µm.tabContextManager.push(tab.id, tab.url, 'newURL');
     }
-
     onAllDone();
 };
 
@@ -76,6 +73,7 @@ var onTabsReady = function(tabs) {
 
 var onUserSettingsLoaded = function() {
     µm.loadHostsFiles();
+    µm.loadRecipes();
 };
 
 /******************************************************************************/
@@ -88,8 +86,10 @@ var onPSLReady = function() {
     // rhill 2013-11-24: bind behind-the-scene virtual tab/url manually, since the
     // normal way forbid binding behind the scene tab.
     // https://github.com/gorhill/httpswitchboard/issues/67
-    µm.pageStores[vAPI.noTabId] = µm.pageStoreFactory(µm.tabContextManager.mustLookup(vAPI.noTabId));
-    µm.pageStores[vAPI.noTabId].title = vAPI.i18n('statsPageDetailedBehindTheScenePage');
+    let pageStore =
+        µm.pageStoreFactory(µm.tabContextManager.mustLookup(vAPI.noTabId));
+    pageStore.title = vAPI.i18n('statsPageDetailedBehindTheScenePage');
+    µm.pageStores.set(vAPI.noTabId, pageStore);
 
     vAPI.tabs.getAll(onTabsReady);
 };
@@ -97,7 +97,7 @@ var onPSLReady = function() {
 /******************************************************************************/
 
 processCallbackQueue(µm.onBeforeStartQueue, function() {
-    µm.loadPublicSuffixList(onPSLReady);
+    µm.publicSuffixList.load(onPSLReady);
 });
 
 /******************************************************************************/

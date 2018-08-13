@@ -32,7 +32,7 @@
         "description": "a tab in dashboard"
     },
     "ubiquitousRulesPageName": {
-        "message": "Хост датотеке",
+        "message": "Assets",
         "description": "a tab in dashboard"
     },
     "rawSettingsPageName": {
@@ -86,6 +86,14 @@
     "matrixNoNetTrafficPrompt": {
         "message": "Нема мрежних активности на овој картици.",
         "description": ""
+    },
+    "matrixLocalScopeTip": {
+        "message": "Select a local scope to see\/create rules which apply only in that scope",
+        "description": "Tool tip for the local scope button"
+    },
+    "matrixGlobalScopeTip": {
+        "message": "Select the global scope to see\/create rules which apply everywhere",
+        "description": "Tool tip for the global scope button"
     },
     "matrixMtxButtonTip": {
         "message": "Омогући\/онемогући матрично филтрирање за ову област.",
@@ -142,6 +150,14 @@
     "matrixNoTabFound": {
         "message": "Ниједна веб страница није пронађена",
         "description": "Displays in place of matrix when no data is found for the current page"
+    },
+    "matrixRecipeImportTip": {
+        "message": "Увоз правила",
+        "description": "Used as a tooltip for the recipe import button"
+    },
+    "matrixRecipeSaveTip": {
+        "message": "Чување правила",
+        "description": "Used as a tooltip for the recipe padlock button"
     },
     "statsPageTitle": {
         "message": "uMatrix &ndash; Статистика",
@@ -275,12 +291,8 @@
         "message": "Величина текста:",
         "description": ""
     },
-    "settingsMatrixDisplayTextSizeNormal": {
-        "message": "Нормалан",
-        "description": ""
-    },
-    "settingsMatrixDisplayTextSizeLarge": {
-        "message": "Велики",
+    "settingsIconBadgeEnabled": {
+        "message": "Прикажи број појединачних захтева на иконици",
         "description": ""
     },
     "settingsMatrixDisplayColorBlind": {
@@ -307,38 +319,6 @@
         "message": "Сајт",
         "description": "Scope will be full hostname of site"
     },
-    "settingsMatrixAutoReloadPrompt": {
-        "message": "Приликом затварања матрице, паметно обнови ове картице:",
-        "description": ""
-    },
-    "settingsMatrixAutoReloadNone": {
-        "message": "Ниједан",
-        "description": ""
-    },
-    "settingsMatrixAutoReloadCurrent": {
-        "message": "Тренутни",
-        "description": ""
-    },
-    "settingsMatrixAutoReloadAll": {
-        "message": "Све",
-        "description": ""
-    },
-    "settingsMatrixAutoReloadInfo": {
-        "message": "Када год начините измене у матрици које могу утицати на приказ и\/или понашање једне или више страница, <i>uMatrix<\/i> ће аутоматски поново учитати погођене странице када будете затворили матрицу.",
-        "description": ""
-    },
-    "settingsSubframeColor": {
-        "message": "Блокираних оквира:&ensp;Боја",
-        "description": "English: Blocked frames:&ensp;Color"
-    },
-    "settingsSubframeOpacity": {
-        "message": "Непрозирност",
-        "description": "English: Opacity"
-    },
-    "settingsIconBadgeEnabled": {
-        "message": "Прикажи број појединачних захтева на иконици",
-        "description": "English: Show the number of distinct requests on the icon"
-    },
     "settingsCollapseBlocked": {
         "message": "Скупи држач блокираних елемената",
         "description": "English: Collapse placeholder of blocked elements"
@@ -353,6 +333,10 @@
     },
     "settingsCloudStorageEnabled": {
         "message": "Омогући подршку складиштења у облаку",
+        "description": ""
+    },
+    "settingsMatrixNoTooltips": {
+        "message": "Онемогући описе алатки",
         "description": ""
     },
     "privacyPageTitle": {
@@ -467,6 +451,10 @@
         "message": "my-umatrix-rules.txt",
         "description": "default file name to use"
     },
+    "assetsHostsSection": {
+        "message": "Хост датотеке",
+        "description": "header to identify the hosts files section"
+    },
     "hostsFilesPrompt": {
         "message": "Сви сајтови у хост датотеци су учитани као блокирани на глобалном нивоу.",
         "description": ""
@@ -488,7 +476,7 @@
         "description": ""
     },
     "hostsFilesAutoUpdatePrompt": {
-        "message": "Аутоматски обнови хост датотеке.",
+        "message": "Auto-update assets",
         "description": ""
     },
     "hostsFilesUpdateNow": {
@@ -517,6 +505,26 @@
     },
     "hostsFilesExternalListObsolete": {
         "message": "застарело",
+        "description": ""
+    },
+    "assetsRecipesSection": {
+        "message": "Ruleset recipes",
+        "description": "header to identify the ruleset files section"
+    },
+    "assetsRecipesSummary": {
+        "message": "Ruleset recipes are imported from the popup panel <em>on demand<\/em>, i.e. <b>only<\/b> through user interaction.",
+        "description": ""
+    },
+    "assetsImportLabel": {
+        "message": "Увези...",
+        "description": ""
+    },
+    "assetsInlineHostsLabel": {
+        "message": "My hosts",
+        "description": ""
+    },
+    "assetsInlineRecipesLabel": {
+        "message": "My recipes",
         "description": ""
     },
     "rawSettingsWarning": {

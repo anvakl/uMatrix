@@ -32,7 +32,7 @@
         "description": "a tab in dashboard"
     },
     "ubiquitousRulesPageName": {
-        "message": "Hosts файлы",
+        "message": "Сторонние правила",
         "description": "a tab in dashboard"
     },
     "rawSettingsPageName": {
@@ -86,6 +86,14 @@
     "matrixNoNetTrafficPrompt": {
         "message": "Нет сетевой активности на этой вкладке.",
         "description": ""
+    },
+    "matrixLocalScopeTip": {
+        "message": "Выберите локальную область для просмотра\/создания правил, которые применяются только к этой области",
+        "description": "Tool tip for the local scope button"
+    },
+    "matrixGlobalScopeTip": {
+        "message": "Выберите глобальную область для просмотра\/создания правил, которые применяются повсеместно",
+        "description": "Tool tip for the global scope button"
     },
     "matrixMtxButtonTip": {
         "message": "Откл\/вкл фильтрацию запросов для данной области",
@@ -142,6 +150,14 @@
     "matrixNoTabFound": {
         "message": "Страница не найдена",
         "description": "Displays in place of matrix when no data is found for the current page"
+    },
+    "matrixRecipeImportTip": {
+        "message": "Импортировать правила",
+        "description": "Used as a tooltip for the recipe import button"
+    },
+    "matrixRecipeSaveTip": {
+        "message": "Сохранить правила",
+        "description": "Used as a tooltip for the recipe padlock button"
     },
     "statsPageTitle": {
         "message": "uMatrix &ndash; Статистика",
@@ -275,12 +291,8 @@
         "message": "Размер текста:",
         "description": ""
     },
-    "settingsMatrixDisplayTextSizeNormal": {
-        "message": "Средний",
-        "description": ""
-    },
-    "settingsMatrixDisplayTextSizeLarge": {
-        "message": "Крупный",
+    "settingsIconBadgeEnabled": {
+        "message": "Показывать число заблокированных запросов на иконке",
         "description": ""
     },
     "settingsMatrixDisplayColorBlind": {
@@ -307,38 +319,6 @@
         "message": "Сайт",
         "description": "Scope will be full hostname of site"
     },
-    "settingsMatrixAutoReloadPrompt": {
-        "message": "Когда матрица закроется, обновить эти вкладки:",
-        "description": ""
-    },
-    "settingsMatrixAutoReloadNone": {
-        "message": "(Пусто)",
-        "description": ""
-    },
-    "settingsMatrixAutoReloadCurrent": {
-        "message": "Текущая версия",
-        "description": ""
-    },
-    "settingsMatrixAutoReloadAll": {
-        "message": "Все",
-        "description": ""
-    },
-    "settingsMatrixAutoReloadInfo": {
-        "message": "Когда вы вносите изменения в матрицу запросов, которые могут повлиять на отображение и\/или поведение одной или нескольких страниц, <i>uMatrix<\/i> перезагрузит эти страницы автоматически, когда вы закроете панель.",
-        "description": ""
-    },
-    "settingsSubframeColor": {
-        "message": "Заблокированные фреймы:&ensp;Цвет",
-        "description": "English: Blocked frames:&ensp;Color"
-    },
-    "settingsSubframeOpacity": {
-        "message": "Непрозрачность",
-        "description": "English: Opacity"
-    },
-    "settingsIconBadgeEnabled": {
-        "message": "Показывать число отдельных запросов на иконке",
-        "description": "English: Show the number of distinct requests on the icon"
-    },
     "settingsCollapseBlocked": {
         "message": "Скрывать оставшееся от заблокированных элементов место",
         "description": "English: Collapse placeholder of blocked elements"
@@ -353,6 +333,10 @@
     },
     "settingsCloudStorageEnabled": {
         "message": "Включить поддержку облачного хранилища",
+        "description": ""
+    },
+    "settingsMatrixNoTooltips": {
+        "message": "Отключить подсказки",
         "description": ""
     },
     "privacyPageTitle": {
@@ -467,6 +451,10 @@
         "message": "my-umatrix-rules.txt",
         "description": "default file name to use"
     },
+    "assetsHostsSection": {
+        "message": "Файлы hosts",
+        "description": "header to identify the hosts files section"
+    },
     "hostsFilesPrompt": {
         "message": "Каждый список содержит перечень сайтов, запрещённых на глобальном уровне.",
         "description": ""
@@ -488,7 +476,7 @@
         "description": ""
     },
     "hostsFilesAutoUpdatePrompt": {
-        "message": "Автообновление списков сайтов.",
+        "message": "Автообновление списков правил",
         "description": ""
     },
     "hostsFilesUpdateNow": {
@@ -500,7 +488,7 @@
         "description": ""
     },
     "hostsFilesExternalListsHint": {
-        "message": "Один URL на строку. Строки, начинающиеся с символа &lsquo;#&rsquo;, будут проигнорированы. Некорректные ссылки будут пропущены.",
+        "message": "Вставьте ссылки на сторонние списки правил:\nОдна ссылка на строку. Некорректные ссылки будут пропущены.",
         "description": ""
     },
     "hostsFilesExternalListsParse": {
@@ -517,6 +505,26 @@
     },
     "hostsFilesExternalListObsolete": {
         "message": "список устарел",
+        "description": ""
+    },
+    "assetsRecipesSection": {
+        "message": "Наборы правил",
+        "description": "header to identify the ruleset files section"
+    },
+    "assetsRecipesSummary": {
+        "message": "Наборы правил импортируются из всплывающей панели <em>по требованию<\/em>, т.е. <b>только<\/b> после запроса пользователя.",
+        "description": ""
+    },
+    "assetsImportLabel": {
+        "message": "Импортировать...",
+        "description": ""
+    },
+    "assetsInlineHostsLabel": {
+        "message": "Мои hosts",
+        "description": ""
+    },
+    "assetsInlineRecipesLabel": {
+        "message": "Мои рецепты",
         "description": ""
     },
     "rawSettingsWarning": {
@@ -568,7 +576,7 @@
         "description": ""
     },
     "aboutBackupButton": {
-        "message": "Сделать резервный файл...",
+        "message": "Сохранить в файл...",
         "description": ""
     },
     "aboutBackupFilename": {

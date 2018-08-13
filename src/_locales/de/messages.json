@@ -32,7 +32,7 @@
         "description": "a tab in dashboard"
     },
     "ubiquitousRulesPageName": {
-        "message": "Hosts-Dateien",
+        "message": "Assets",
         "description": "a tab in dashboard"
     },
     "rawSettingsPageName": {
@@ -86,6 +86,14 @@
     "matrixNoNetTrafficPrompt": {
         "message": "Bisher keine Netzwerkaktivität für diesen Tab.",
         "description": ""
+    },
+    "matrixLocalScopeTip": {
+        "message": "Wähle einen lokalen Geltungsbereich, um Regeln zu betrachten\/erzeugen, die nur in diesem Geltungsbereich angewandt werden",
+        "description": "Tool tip for the local scope button"
+    },
+    "matrixGlobalScopeTip": {
+        "message": "Wähle den globalen Geltungsbereich, um Regeln zu betrachten\/erzeugen, die überall angewandt werden",
+        "description": "Tool tip for the global scope button"
     },
     "matrixMtxButtonTip": {
         "message": "Aktiviere\/deaktiviere die Matrix-Filter für diesen Geltungsbereich.",
@@ -142,6 +150,14 @@
     "matrixNoTabFound": {
         "message": "Keine Webseite gefunden",
         "description": "Displays in place of matrix when no data is found for the current page"
+    },
+    "matrixRecipeImportTip": {
+        "message": "Regeln importieren",
+        "description": "Used as a tooltip for the recipe import button"
+    },
+    "matrixRecipeSaveTip": {
+        "message": "Regeln speichern",
+        "description": "Used as a tooltip for the recipe padlock button"
     },
     "statsPageTitle": {
         "message": "µMatrix &ndash; Statistik",
@@ -275,12 +291,8 @@
         "message": "Schriftgröße:",
         "description": ""
     },
-    "settingsMatrixDisplayTextSizeNormal": {
-        "message": "Normal",
-        "description": ""
-    },
-    "settingsMatrixDisplayTextSizeLarge": {
-        "message": "Groß",
+    "settingsIconBadgeEnabled": {
+        "message": "Zeige die Zahl der blockierten Anfragen auf dem Icon an",
         "description": ""
     },
     "settingsMatrixDisplayColorBlind": {
@@ -307,38 +319,6 @@
         "message": "Seite",
         "description": "Scope will be full hostname of site"
     },
-    "settingsMatrixAutoReloadPrompt": {
-        "message": "Intelligentes Neuladen folgender Tabs beim Schließen der Matrix:",
-        "description": ""
-    },
-    "settingsMatrixAutoReloadNone": {
-        "message": "Keine",
-        "description": ""
-    },
-    "settingsMatrixAutoReloadCurrent": {
-        "message": "den Aktuellen",
-        "description": ""
-    },
-    "settingsMatrixAutoReloadAll": {
-        "message": "Alle",
-        "description": ""
-    },
-    "settingsMatrixAutoReloadInfo": {
-        "message": "Immer wenn du Änderungen in der Matrix durchführst, die die Anzeige und\/oder das Verhalten einer oder mehrerer Seiten beeinflusst, wird <i>uMatrix<\/i> die betroffenen Seiten automatisch neu laden, sobald du die Matrix schließt.",
-        "description": ""
-    },
-    "settingsSubframeColor": {
-        "message": "Blockierte Frames:&ensp;Farbe",
-        "description": "English: Blocked frames:&ensp;Color"
-    },
-    "settingsSubframeOpacity": {
-        "message": "Undurchsuchtigkeit",
-        "description": "English: Opacity"
-    },
-    "settingsIconBadgeEnabled": {
-        "message": "Zeige die Zahl der einzelnen Anfragen auf dem Icon an",
-        "description": "English: Show the number of distinct requests on the icon"
-    },
     "settingsCollapseBlocked": {
         "message": "Verstecke die Platzhalter für blockierte Elemente",
         "description": "English: Collapse placeholder of blocked elements"
@@ -353,6 +333,10 @@
     },
     "settingsCloudStorageEnabled": {
         "message": "Aktiviere die Unterstützung der Speicherung in der Cloud",
+        "description": ""
+    },
+    "settingsMatrixNoTooltips": {
+        "message": "Deaktiviere Tooltips",
         "description": ""
     },
     "privacyPageTitle": {
@@ -467,6 +451,10 @@
         "message": "my-umatrix-rules.txt",
         "description": "default file name to use"
     },
+    "assetsHostsSection": {
+        "message": "Hosts-Dateien",
+        "description": "header to identify the hosts files section"
+    },
     "hostsFilesPrompt": {
         "message": "Alle Hostnamen einer Hosts-Datei werden als geblacklistete Hostnamen im globalen Geltungsbereich geladen.",
         "description": ""
@@ -488,7 +476,7 @@
         "description": ""
     },
     "hostsFilesAutoUpdatePrompt": {
-        "message": "Hosts-Dateien automatisch aktualisieren.",
+        "message": "Automatische Aktualisierung der Assets",
         "description": ""
     },
     "hostsFilesUpdateNow": {
@@ -517,6 +505,26 @@
     },
     "hostsFilesExternalListObsolete": {
         "message": "veraltet",
+        "description": ""
+    },
+    "assetsRecipesSection": {
+        "message": "Rezepte für Regelsätze",
+        "description": "header to identify the ruleset files section"
+    },
+    "assetsRecipesSummary": {
+        "message": "Rezepte für Regelsätze werden <em>auf Anforderung<\/em>, d.h. <b>nur<\/b> durch eine Aktion des Benutzers, über das Popup-Panel importiert.",
+        "description": ""
+    },
+    "assetsImportLabel": {
+        "message": "Importieren...",
+        "description": ""
+    },
+    "assetsInlineHostsLabel": {
+        "message": "Meine Hostnamen",
+        "description": ""
+    },
+    "assetsInlineRecipesLabel": {
+        "message": "Meine Rezepte",
         "description": ""
     },
     "rawSettingsWarning": {

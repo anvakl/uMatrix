@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-    uMatrix - a Chromium browser extension to black/white list requests.
+    uMatrix - a browser extension to black/white list requests.
     Copyright (C) 2014-2018 Raymond Hill
 
     This program is free software: you can redistribute it and/or modify
@@ -41,8 +41,8 @@ function onMessage(request, sender, callback) {
         µm.assets.get(request.url, { dontCache: true }, callback);
         return;
 
-    case 'selectHostsFiles':
-        µm.selectHostsFiles(request, callback);
+    case 'selectAssets':
+        µm.selectAssets(request, callback);
         return;
 
     default:
@@ -95,6 +95,10 @@ function onMessage(request, sender, callback) {
 
     case 'reloadHostsFiles':
         µm.reloadHostsFiles();
+        break;
+
+    case 'reloadRecipeFiles':
+        µm.loadRecipes(true);
         break;
 
     case 'setMatrixSwitch':
@@ -196,6 +200,7 @@ var matrixSnapshot = function(pageStore, details) {
         userSettings: {
             colorBlindFriendly: µmuser.colorBlindFriendly,
             displayTextSize: µmuser.displayTextSize,
+            noTooltips: µmuser.noTooltips,
             popupScopeLevel: µmuser.popupScopeLevel
         }
     };
@@ -319,6 +324,14 @@ var matrixSnapshotFromTabId = function(details, callback) {
 var onMessage = function(request, sender, callback) {
     // Async
     switch ( request.what ) {
+    case 'fetchRecipes':
+        µm.recipeManager.fetch(
+            request.srcHostname,
+            request.desHostnames,
+            callback
+        );
+        return;
+
     case 'matrixSnapshot':
         matrixSnapshotFromTabId(request, callback);
         return;
@@ -331,6 +344,14 @@ var onMessage = function(request, sender, callback) {
     var response;
 
     switch ( request.what ) {
+    case 'applyRecipe':
+        µm.recipeManager.apply(request);
+        break;
+
+    case 'fetchRecipeCommitStatuses':
+        response = µm.recipeManager.statuses(request);
+        break;
+
     case 'toggleMatrixSwitch':
         µm.tMatrix.setSwitchZ(
             request.switchName,
@@ -556,7 +577,7 @@ var onMessage = function(request, sender, callback) {
                 request.documentURI;
             if ( pageStore !== null ) {
                 pageStore.hasWebWorkers = true;
-                pageStore.recordRequest('script', url, true);
+                pageStore.recordRequest('script', url, request.blocked);
             }
             if ( tabContext !== null ) {
                 µm.logger.writeOne(tabId, 'net', rootHostname, url, 'worker', request.blocked);
@@ -656,6 +677,22 @@ vAPI.messaging.listen('cloud-ui.js', onMessage);
 
 var µm = µMatrix;
 
+var modifyRuleset = function(details) {
+    let ruleset = details.permanent ? µm.pMatrix : µm.tMatrix,
+        modifiedTime = ruleset.modifiedTime;
+    let toRemove = new Set(details.toRemove.trim().split(/\s*[\n\r]+\s*/));
+    for ( let rule of toRemove ) {
+        ruleset.removeFromLine(rule);
+    }
+    let toAdd = new Set(details.toAdd.trim().split(/\s*[\n\r]+\s*/));
+    for ( let rule of toAdd ) {
+        ruleset.addFromLine(rule);
+    }
+    if ( details.permanent && ruleset.modifiedTime !== modifiedTime ) {
+        µm.saveMatrix();
+    }
+};
+
 /******************************************************************************/
 
 var onMessage = function(request, sender, callback) {
@@ -670,24 +707,14 @@ var onMessage = function(request, sender, callback) {
     var response;
 
     switch ( request.what ) {
-    case 'getUserRules':
-        response = {
-            temporaryRules: µm.tMatrix.toString(),
-            permanentRules: µm.pMatrix.toString()
-        };
-        break;
+    case 'modifyRuleset':
+        modifyRuleset(request);
+        /* falls through */
 
-    case 'setUserRules':
-        if ( typeof request.temporaryRules === 'string' ) {
-            µm.tMatrix.fromString(request.temporaryRules);
-        }
-        if ( typeof request.permanentRules === 'string' ) {
-            µm.pMatrix.fromString(request.permanentRules);
-            µm.saveMatrix();
-        }
+    case 'getRuleset':
         response = {
-            temporaryRules: µm.tMatrix.toString(),
-            permanentRules: µm.pMatrix.toString()
+            temporaryRules: µm.tMatrix.toArray(),
+            permanentRules: µm.pMatrix.toArray()
         };
         break;
 
@@ -713,40 +740,27 @@ var µm = µMatrix;
 
 /******************************************************************************/
 
-var prepEntries = function(entries) {
-    var µmuri = µm.URI;
-    var entry;
-    for ( var k in entries ) {
-        if ( entries.hasOwnProperty(k) === false ) {
-            continue;
-        }
-        entry = entries[k];
-        if ( typeof entry.homeURL === 'string' ) {
-            entry.homeHostname = µmuri.hostnameFromURI(entry.homeURL);
-            entry.homeDomain = µmuri.domainFromHostname(entry.homeHostname);
-        }
-    }
-};
-
-/******************************************************************************/
-
-var getLists = function(callback) {
+var getAssets = function(callback) {
     var r = {
         autoUpdate: µm.userSettings.autoUpdate,
-        available: null,
+        blockedHostnameCount: µm.ubiquitousBlacklist.count,
+        hosts: null,
+        recipes: null,
+        userRecipes: µm.userSettings.userRecipes,
         cache: null,
-        current: µm.liveHostsFiles,
-        blockedHostnameCount: µm.ubiquitousBlacklist.count
+        contributor: µm.rawSettings.contributorMode
     };
     var onMetadataReady = function(entries) {
         r.cache = entries;
-        prepEntries(r.cache);
         callback(r);
     };
-    var onAvailableHostsFilesReady = function(lists) {
-        r.available = lists;
-        prepEntries(r.available);
+    var onAvailableRecipeFilesReady = function(collection) {
+        r.recipes = Array.from(collection);
         µm.assets.metadata(onMetadataReady);
+    };
+    var onAvailableHostsFilesReady = function(collection) {
+        r.hosts = Array.from(collection);
+        µm.getAvailableRecipeFiles(onAvailableRecipeFilesReady);
     };
     µm.getAvailableHostsFiles(onAvailableHostsFilesReady);
 };
@@ -758,8 +772,8 @@ var onMessage = function(request, sender, callback) {
 
     // Async
     switch ( request.what ) {
-    case 'getLists':
-        return getLists(callback);
+    case 'getAssets':
+        return getAssets(callback);
 
     default:
         break;
@@ -805,7 +819,7 @@ var µm = µMatrix;
 /******************************************************************************/
 
 var restoreUserData = function(userData) {
-    var countdown = 4;
+    var countdown = 0;
     var onCountdown = function() {
         countdown -= 1;
         if ( countdown === 0 ) {
@@ -814,11 +828,18 @@ var restoreUserData = function(userData) {
     };
 
     var onAllRemoved = function() {
+        let µm = µMatrix;
+        countdown += 1;
         vAPI.storage.set(userData.settings, onCountdown);
-        vAPI.storage.set({ userMatrix: userData.rules }, onCountdown);
-        vAPI.storage.set({ liveHostsFiles: userData.hostsFiles }, onCountdown);
+        countdown += 1;
+        let bin = { userMatrix: userData.rules };
+        if ( userData.hostsFiles instanceof Object ) {
+            bin.liveHostsFiles = userData.hostsFiles;
+        }
+        vAPI.storage.set(bin, onCountdown);
         if ( userData.rawSettings instanceof Object ) {
-            µMatrix.saveRawSettings(userData.rawSettings, onCountdown);
+            countdown += 1;
+            µm.saveRawSettings(userData.rawSettings, onCountdown);
         }
     };
 
@@ -855,8 +876,7 @@ var onMessage = function(request, sender, callback) {
             version: vAPI.app.version,
             when: Date.now(),
             settings: µm.userSettings,
-            rules: µm.pMatrix.toString(),
-            hostsFiles: µm.liveHostsFiles,
+            rules: µm.pMatrix.toArray().sort(),
             rawSettings: µm.rawSettings
         };
         break;
@@ -918,20 +938,23 @@ var onMessage = function(request, sender, callback) {
             response = { unavailable: true };
             break;
         }
-        var tabIds = {};
-        for ( var tabId in µm.pageStores ) {
-            var pageStore = µm.pageStoreFromTabId(tabId);
-            if ( pageStore === null ) { continue; }
-            if ( pageStore.rawUrl.startsWith(loggerURL) ) { continue; }
-            tabIds[tabId] = pageStore.title || pageStore.rawUrl;
+        let pageStores;
+        if ( request.pageStoresToken !== µm.pageStoresToken ) {
+            pageStores = [];
+            for ( let entry of µm.pageStores ) {
+                let tabId = entry[0];
+                let pageStore = entry[1];
+                if ( pageStore.rawURL.startsWith(loggerURL) ) { continue; }
+                pageStores.push([ tabId, pageStore.title || pageStore.rawURL ]);
+            }
         }
         response = {
             colorBlind: false,
             entries: µm.logger.readAll(request.ownerId),
             maxLoggedRequests: µm.userSettings.maxLoggedRequests,
             noTabId: vAPI.noTabId,
-            tabIds: tabIds,
-            tabIdsToken: µm.pageStoresToken
+            pageStores: pageStores,
+            pageStoresToken: µm.pageStoresToken
         };
         break;
 

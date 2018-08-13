@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-    uMatrix - a Chromium browser extension to black/white list requests.
+    uMatrix - a browser extension to black/white list requests.
     Copyright (C) 2014-2018 Raymond Hill
 
     This program is free software: you can redistribute it and/or modify
@@ -47,11 +47,16 @@ var onBeforeRootFrameRequestHandler = function(details) {
 
     var pageStore = µm.pageStoreFromTabId(tabId);
     pageStore.recordRequest('doc', requestURL, block);
+    pageStore.perLoadAllowedRequestCount = 0;
+    pageStore.perLoadBlockedRequestCount = 0;
     µm.logger.writeOne(tabId, 'net', rootHostname, requestURL, 'doc', block);
 
     // Not blocked
     if ( !block ) {
-        // rhill 2013-11-07: Senseless to do this for behind-the-scene requests.
+        let redirectURL = maybeRedirectRootFrame(requestHostname, requestURL);
+        if ( redirectURL !== requestURL ) {
+            return { redirectUrl: redirectURL };
+        }
         µm.cookieHunter.recordPageCookies(pageStore);
         return;
     }
@@ -66,6 +71,27 @@ var onBeforeRootFrameRequestHandler = function(details) {
     vAPI.tabs.replace(tabId, vAPI.getURL('main-blocked.html?details=') + query);
 
     return { cancel: true };
+};
+
+/******************************************************************************/
+
+// https://twitter.com/thatcks/status/958776519765225473
+
+var maybeRedirectRootFrame = function(hostname, url) {
+    let µm = µMatrix;
+    if ( µm.rawSettings.enforceEscapedFragment !== true ) { return url; }
+    let block1pScripts = µm.mustBlock(hostname, hostname, 'script');
+    let reEscapedFragment = /[?&]_escaped_fragment_=/;
+    if ( reEscapedFragment.test(url) ) {
+        return block1pScripts ? url : url.replace(reEscapedFragment, '#!') ;
+    }
+    if ( block1pScripts === false ) { return url; }
+    let pos = url.indexOf('#!');
+    if ( pos === -1 ) { return url; }
+    let separator = url.lastIndexOf('?', pos) === -1 ? '?' : '&';
+    return url.slice(0, pos) +
+           separator + '_escaped_fragment_=' +
+           url.slice(pos + 2);
 };
 
 /******************************************************************************/
@@ -100,6 +126,21 @@ var onBeforeRequestHandler = function(details) {
         tabId = tabContext.tabId,
         rootHostname = tabContext.rootHostname,
         specificity = 0;
+
+    // https://github.com/gorhill/uMatrix/issues/995
+    //   For now we will not reclassify behind-the-scene contexts which are not
+    //   network-based URIs. Once the logger is able to provide context
+    //   information, the reclassification will be allowed.
+    if (
+        tabId < 0 &&
+        details.documentUrl !== undefined &&
+        µmuri.isNetworkURI(details.documentUrl)
+    ) {
+        tabId = µm.tabContextManager.tabIdFromURL(details.documentUrl);
+        rootHostname = µmuri.hostnameFromURI(
+            µm.normalizePageURL(0, details.documentUrl)
+        );
+    }
 
     // Filter through matrix
     var block = µm.tMatrix.mustBlock(
@@ -141,7 +182,7 @@ var onBeforeRequestHandler = function(details) {
 // Sanitize outgoing headers as per user settings.
 
 var onBeforeSendHeadersHandler = function(details) {
-    var µm = µMatrix,
+    let µm = µMatrix,
         µmuri = µm.URI,
         requestURL = details.url,
         requestScheme = µmuri.schemeFromURI(requestURL);
@@ -156,11 +197,10 @@ var onBeforeSendHeadersHandler = function(details) {
     // to scope on unknown scheme? Etc.
     // https://github.com/gorhill/httpswitchboard/issues/191
     // https://github.com/gorhill/httpswitchboard/issues/91#issuecomment-37180275
-    var tabId = details.tabId,
+    let tabId = details.tabId,
         pageStore = µm.mustPageStoreFromTabId(tabId),
         requestType = requestTypeNormalizer[details.type] || 'other',
-        requestHeaders = details.requestHeaders,
-        headerIndex, headerValue;
+        requestHeaders = details.requestHeaders;
 
     // https://github.com/gorhill/httpswitchboard/issues/342
     // Is this hyperlink auditing?
@@ -168,7 +208,7 @@ var onBeforeSendHeadersHandler = function(details) {
     // in request log. This way the user is better informed of what went
     // on.
 
-    // https://html.spec.whatwg.org/multipage/semantics.html#hyperlink-auditing
+    // https://html.spec.whatwg.org/multipage/links.html#hyperlink-auditing
     //
     // Target URL = the href of the link
     // Doc URL = URL of the document containing the target URL
@@ -183,9 +223,9 @@ var onBeforeSendHeadersHandler = function(details) {
     // With hyperlink-auditing, removing header(s) is pointless, the whole
     // request must be cancelled.
 
-    headerIndex = headerIndexFromName('ping-to', requestHeaders);
+    let headerIndex = headerIndexFromName('ping-to', requestHeaders);
     if ( headerIndex !== -1 ) {
-        headerValue = requestHeaders[headerIndex].value;
+        let headerValue = requestHeaders[headerIndex].value;
         if ( headerValue !== '' ) {
             var block = µm.userSettings.processHyperlinkAuditing;
             pageStore.recordRequest('other', requestURL + '{Ping-To:' + headerValue + '}', block);
@@ -200,7 +240,7 @@ var onBeforeSendHeadersHandler = function(details) {
     // If we reach this point, request is not blocked, so what is left to do
     // is to sanitize headers.
 
-    var rootHostname = pageStore.pageHostname,
+    let rootHostname = pageStore.pageHostname,
         requestHostname = µmuri.hostnameFromURI(requestURL),
         modified = false;
         
@@ -212,10 +252,11 @@ var onBeforeSendHeadersHandler = function(details) {
         µm.mustBlock(rootHostname, requestHostname, 'cookie')
     ) {
         modified = true;
-        headerValue = requestHeaders[headerIndex].value;
+        let headerValue = requestHeaders[headerIndex].value;
         requestHeaders.splice(headerIndex, 1);
         µm.cookieHeaderFoiledCounter++;
         if ( requestType === 'doc' ) {
+            pageStore.perLoadBlockedRequestCount++;
             µm.logger.writeOne(tabId, 'net', '', headerValue, 'COOKIE', true);
         }
     }
@@ -242,35 +283,38 @@ var onBeforeSendHeadersHandler = function(details) {
 
     headerIndex = headerIndexFromName('referer', requestHeaders);
     if ( headerIndex !== -1 ) {
-        headerValue = requestHeaders[headerIndex].value;
+        let headerValue = requestHeaders[headerIndex].value;
         if ( headerValue !== '' ) {
-            var toDomain = µmuri.domainFromHostname(requestHostname);
+            let toDomain = µmuri.domainFromHostname(requestHostname);
             if ( toDomain !== '' && toDomain !== µmuri.domainFromURI(headerValue) ) {
                 pageStore.has3pReferrer = true;
                 if ( µm.tMatrix.evaluateSwitchZ('referrer-spoof', rootHostname) ) {
                     modified = true;
-                    var newValue;
+                    let newValue;
                     if ( details.method === 'GET' ) {
                         newValue = requestHeaders[headerIndex].value =
                             requestScheme + '://' + requestHostname + '/';
                     } else {
                         requestHeaders.splice(headerIndex, 1);
                     }
-                    µm.refererHeaderFoiledCounter++;
-                    if ( requestType === 'doc' ) {
+                    if ( pageStore.perLoadBlockedReferrerCount === 0 ) {
+                        pageStore.perLoadBlockedRequestCount += 1;
                         µm.logger.writeOne(tabId, 'net', '', headerValue, 'REFERER', true);
                         if ( newValue !== undefined ) {
                             µm.logger.writeOne(tabId, 'net', '', newValue, 'REFERER', false);
                         }
                     }
+                    pageStore.perLoadBlockedReferrerCount += 1;
                 }
             }
         }
     }
 
-    if ( modified ) {
-        return { requestHeaders: requestHeaders };
-    }
+    if ( modified !== true ) { return; }
+
+    µm.updateBadgeAsync(tabId);
+
+    return { requestHeaders: requestHeaders };
 };
 
 /******************************************************************************/
@@ -314,48 +358,60 @@ var onHeadersReceived = function(details) {
         csp.push(µm.cspNoInlineStyle);
     }
 
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=1302667
-    var cspNoWorker = µm.cspNoWorker;
-    if ( cspNoWorker === undefined ) {
-        cspNoWorker = cspNoWorkerInit();
-    }
-
     if ( µm.tMatrix.evaluateSwitchZ('no-workers', rootHostname) ) {
-        csp.push(cspNoWorker);
+        csp.push(µm.cspNoWorker);
     } else if ( µm.rawSettings.disableCSPReportInjection === false ) {
-        cspReport.push(cspNoWorker);
+        cspReport.push(µm.cspNoWorker);
     }
 
-    var headers = details.responseHeaders,
-        cspDirectives, i;
+    if ( csp.length === 0 && cspReport.length === 0 ) { return; }
+
+    // https://github.com/gorhill/uMatrix/issues/967
+    //   Inject a new CSP header rather than modify an existing one, except
+    //   if the current environment does not support merging headers:
+    //   Firefox 58/webext and less can't merge CSP headers, so we will merge
+    //   them here.
+    var headers = details.responseHeaders;
 
     if ( csp.length !== 0 ) {
-        cspDirectives = csp.join(',');
-        i = headerIndexFromName('content-security-policy', headers);
-        if ( i !== -1 ) {
-            headers[i].value += ',' + cspDirectives;
-        } else {
-            headers.push({
-                name: 'Content-Security-Policy',
-                value: cspDirectives
-            });
+        let cspRight = csp.join(', ');
+        let cspTotal = cspRight;
+        if ( µm.cantMergeCSPHeaders ) {
+            let i = headerIndexFromName(
+                'content-security-policy',
+                headers
+            );
+            if ( i !== -1 ) {
+                cspTotal = headers[i].value.trim() + ', ' + cspTotal;
+                headers.splice(i, 1);
+            }
         }
+        headers.push({
+            name: 'Content-Security-Policy',
+            value: cspTotal
+        });
         if ( requestType === 'doc' ) {
-            µm.logger.writeOne(tabId, 'net', '', cspDirectives, 'CSP', false);
+            µm.logger.writeOne(tabId, 'net', '', cspRight, 'CSP', false);
         }
     }
 
     if ( cspReport.length !== 0 ) {
-        cspDirectives = cspReport.join(',');
-        i = headerIndexFromName('content-security-policy-report-only', headers);
-        if ( i !== -1 ) {
-            headers[i].value += ',' + cspDirectives;
-        } else {
-            headers.push({
-                name: 'Content-Security-Policy-Report-Only',
-                value: cspDirectives
-            });
+        let cspRight = cspReport.join(', ');
+        let cspTotal = cspRight;
+        if ( µm.cantMergeCSPHeaders ) {
+            let i = headerIndexFromName(
+                'content-security-policy-report-only',
+                headers
+            );
+            if ( i !== -1 ) {
+                cspTotal = headers[i].value.trim() + ', ' + cspTotal;
+                headers.splice(i, 1);
+            }
         }
+        headers.push({
+            name: 'Content-Security-Policy-Report-Only',
+            value: cspTotal
+        });
     }
 
     return { responseHeaders: headers };
@@ -363,15 +419,19 @@ var onHeadersReceived = function(details) {
 
 /******************************************************************************/
 
-var cspNoWorkerInit = function() {
-    if ( vAPI.webextFlavor === undefined ) {
-        return "child-src 'none'; frame-src data: blob: *; report-uri about:blank";
+// https://bugzilla.mozilla.org/show_bug.cgi?id=1302667
+// https://github.com/gorhill/uMatrix/issues/967#issuecomment-373002011
+
+window.addEventListener('webextFlavor', function() {
+    if ( vAPI.webextFlavor.soup.has('firefox') === false ) { return; }
+    if ( vAPI.webextFlavor.major <= 57 ) {
+        µMatrix.cspNoWorker =
+            "child-src 'none'; frame-src data: blob: *; report-uri about:blank";
     }
-    µMatrix.cspNoWorker = /^Mozilla-Firefox-5[67]/.test(vAPI.webextFlavor) ?
-        "child-src 'none'; frame-src data: blob: *; report-uri about:blank" :
-        "worker-src 'none'; report-uri about:blank" ;
-    return µMatrix.cspNoWorker;
-};
+    if ( vAPI.webextFlavor.major <= 58 ) {
+        µMatrix.cantMergeCSPHeaders = true;
+    }
+}, { once: true });
 
 /******************************************************************************/
 

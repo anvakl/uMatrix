@@ -1,7 +1,7 @@
 /*******************************************************************************
 
     uMatrix - a Chromium browser extension to black/white list requests.
-    Copyright (C) 2014-2017 Raymond Hill
+    Copyright (C) 2014-2018 Raymond Hill
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,7 +20,6 @@
 */
 
 /* global punycode */
-/* jshint bitwise: false */
 
 'use strict';
 
@@ -31,13 +30,11 @@
 /******************************************************************************/
 
 var µm = µMatrix;
-var magicId = 'axyorpwxtmnf';
-var uniqueIdGenerator = 1;
+var selfieVersion = 1;
 
 /******************************************************************************/
 
 var Matrix = function() {
-    this.id = uniqueIdGenerator++;
     this.reset();
     this.sourceRegister = '';
     this.decomposedSourceRegister = [''];
@@ -103,10 +100,10 @@ var switchStateToNameMap = new Map([
     [ 2, 'false' ]
 ]);
 
-var nameToSwitchStateMap = {
-     'true': 1,
-    'false': 2
-};
+var nameToSwitchStateMap = new Map([
+    [  'true', 1 ],
+    [ 'false', 2 ]
+]);
 
 /******************************************************************************/
 
@@ -141,6 +138,18 @@ var isIPAddress = function(hostname) {
     }
     return hostname.charAt(0) === '[';
 };
+
+/******************************************************************************/
+
+var punycodeIf = function(hn) {
+    return reNotASCII.test(hn) ? punycode.toASCII(hn) : hn;
+};
+
+var unpunycodeIf = function(hn) {
+    return hn.indexOf('xn--') !== -1 ? punycode.toUnicode(hn) : hn;
+};
+
+var reNotASCII = /[^\x20-\x7F]/;
 
 /******************************************************************************/
 
@@ -594,207 +603,163 @@ Matrix.prototype.extractAllSourceHostnames = (function() {
 
 /******************************************************************************/
 
-Matrix.prototype.toString = function() {
-    var out = [];
-    var rule, type, switchName, val;
-    var srcHostname, desHostname;
-    for ( rule of this.rules.keys() ) {
-        srcHostname = this.srcHostnameFromRule(rule);
-        desHostname = this.desHostnameFromRule(rule);
-        for ( type of typeBitOffsets.keys() ) {
-            val = this.evaluateCell(srcHostname, desHostname, type);
+// https://github.com/gorhill/uMatrix/issues/759
+//   Backward compatibility: 'plugin' => 'media'
+
+Matrix.prototype.partsFromLine = function(line) {
+    let fields = line.split(/\s+/);
+    if ( fields.length < 3 ) { return; }
+
+    // Switches
+    if ( this.reSwitchRule.test(fields[0]) ) {
+        fields[0] = fields[0].slice(0, -1);
+        if ( switchBitOffsets.has(fields[0]) === false ) { return; }
+        fields[1] = punycodeIf(fields[1]);
+        fields[2] = nameToSwitchStateMap.get(fields[2]);
+        if ( fields[2] === undefined ) { return; }
+        fields.length = 3;
+        return fields;
+    }
+
+    // Rules
+    if ( fields.length < 4 ) { return; }
+    fields[0] = punycodeIf(fields[0]);
+    fields[1] = punycodeIf(fields[1]);
+    if ( fields[2] === 'plugin' ) { fields[2] = 'media'; }
+    if ( typeBitOffsets.get(fields[2]) === undefined ) { return; }
+    if ( nameToStateMap.hasOwnProperty(fields[3]) === false ) { return; }
+    fields[3] = nameToStateMap[fields[3]];
+    fields.length = 4;
+    return fields;
+};
+
+Matrix.prototype.reSwitchRule = /^[0-9a-z-]+:$/;
+
+/******************************************************************************/
+
+Matrix.prototype.fromArray = function(lines, append) {
+    let matrix = append === true ? this : new Matrix();
+    for ( let line of lines ) {
+        matrix.addFromLine(line);
+    }
+    if ( append !== true ) {
+        this.assign(matrix);
+    }
+    this.modifiedTime = Date.now();
+};
+
+Matrix.prototype.toArray = function() {
+    let out = [];
+    for ( let rule of this.rules.keys() ) {
+        let srcHostname = this.srcHostnameFromRule(rule);
+        let desHostname = this.desHostnameFromRule(rule);
+        for ( let type of typeBitOffsets.keys() ) {
+            let val = this.evaluateCell(srcHostname, desHostname, type);
             if ( val === 0 ) { continue; }
             out.push(
-                punycode.toUnicode(srcHostname) + ' ' +
-                punycode.toUnicode(desHostname) + ' ' +
+                unpunycodeIf(srcHostname) + ' ' +
+                unpunycodeIf(desHostname) + ' ' +
                 type + ' ' +
                 stateToNameMap.get(val)
             );
         }
     }
-    for ( srcHostname of this.switches.keys() ) {
-        for ( switchName of switchBitOffsets.keys() ) {
-            val = this.evaluateSwitch(switchName, srcHostname);
+    for ( let srcHostname of this.switches.keys() ) {
+        for ( let switchName of switchBitOffsets.keys() ) {
+            let val = this.evaluateSwitch(switchName, srcHostname);
             if ( val === 0 ) { continue; }
-            out.push(switchName + ': ' + srcHostname + ' ' + switchStateToNameMap.get(val));
+            out.push(
+                switchName + ': ' +
+                srcHostname + ' ' +
+                switchStateToNameMap.get(val)
+            );
         }
     }
-    return out.sort().join('\n');
+    return out;
 };
 
 /******************************************************************************/
 
 Matrix.prototype.fromString = function(text, append) {
-    var matrix = append ? this : new Matrix();
-    var textEnd = text.length;
-    var lineBeg = 0, lineEnd;
-    var line, pos;
-    var fields, fieldVal;
-    var switchName;
-    var srcHostname = '';
-    var desHostname = '';
-    var type, state;
+    let matrix = append === true ? this : new Matrix();
+    let textEnd = text.length;
+    let lineBeg = 0;
 
     while ( lineBeg < textEnd ) {
-        lineEnd = text.indexOf('\n', lineBeg);
-        if ( lineEnd < 0 ) {
+        let lineEnd = text.indexOf('\n', lineBeg);
+        if ( lineEnd === -1 ) {
             lineEnd = text.indexOf('\r', lineBeg);
-            if ( lineEnd < 0 ) {
+            if ( lineEnd === -1 ) {
                 lineEnd = textEnd;
             }
         }
-        line = text.slice(lineBeg, lineEnd).trim();
+        let line = text.slice(lineBeg, lineEnd).trim();
         lineBeg = lineEnd + 1;
-
-        pos = line.indexOf('# ');
+        let pos = line.indexOf('# ');
         if ( pos !== -1 ) {
             line = line.slice(0, pos).trim();
         }
-        if ( line === '' ) {
-            continue;
-        }
-
-        fields = line.split(/\s+/);
-
-        // Less than 2 fields makes no sense
-        if ( fields.length < 2 ) {
-            continue;
-        }
-
-        fieldVal = fields[0];
-
-        // Special directives:
-
-        // title
-        pos = fieldVal.indexOf('title:');
-        if ( pos !== -1 ) {
-            // TODO
-            continue;
-        }
-
-        // Name
-        pos = fieldVal.indexOf('name:');
-        if ( pos !== -1 ) {
-            // TODO
-            continue;
-        }
-
-        // Switch on/off
-
-        // `switch:` srcHostname state
-        //      state = [`true`, `false`]
-        switchName = '';
-        if ( fieldVal === 'switch:' || fieldVal === 'matrix:' ) {
-            fieldVal = 'matrix-off:';
-        }
-        pos = fieldVal.indexOf(':');
-        if ( pos !== -1 ) {
-            switchName = fieldVal.slice(0, pos);
-        }
-        if ( switchBitOffsets.has(switchName) ) {
-            srcHostname = punycode.toASCII(fields[1]);
-
-            // No state field: reject
-            fieldVal = fields[2];
-            if ( fieldVal === null ) {
-                continue;
-            }
-            // Unknown state: reject
-            if ( nameToSwitchStateMap.hasOwnProperty(fieldVal) === false ) {
-                continue;
-            }
-
-            // Backward compatibility:
-            // `chromium-behind-the-scene` is now `behind-the-scene`
-            if ( srcHostname === 'chromium-behind-the-scene' ) {
-                srcHostname = 'behind-the-scene';
-            }
-
-            matrix.setSwitch(switchName, srcHostname, nameToSwitchStateMap[fieldVal]);
-            continue;
-        }
-
-        // Unknown directive
-        if ( fieldVal.endsWith(':') ) {
-            continue;
-        }
-
-        // Valid rule syntax:
-
-        // srcHostname desHostname [type [state]]
-        //      type = a valid request type
-        //      state = [`block`, `allow`, `inherit`]
-
-        // srcHostname desHostname type
-        //      type = a valid request type
-        //      state = `allow`
-
-        // srcHostname desHostname
-        //      type = `*`
-        //      state = `allow`
-
-        // Lines with invalid syntax silently ignored
-
-        srcHostname = punycode.toASCII(fields[0]);
-        desHostname = punycode.toASCII(fields[1]);
-
-        fieldVal = fields[2];
-
-        if ( fieldVal !== undefined ) {
-            type = fieldVal;
-            // https://github.com/gorhill/uMatrix/issues/759
-            // Backward compatibility.
-            if ( type === 'plugin' ) {
-                type = 'media';
-            }
-            // Unknown type: reject
-            if ( typeBitOffsets.has(type) === false ) {
-                continue;
-            }
-        } else {
-            type = '*';
-        }
-
-        fieldVal = fields[3];
-
-        if ( fieldVal !== undefined ) {
-            // Unknown state: reject
-            if ( nameToStateMap.hasOwnProperty(fieldVal) === false ) {
-                continue;
-            }
-            state = nameToStateMap[fieldVal];
-        } else {
-            state = 2;
-        }
-
-        matrix.setCell(srcHostname, desHostname, type, state);
+        if ( line === '' ) { continue; }
+        matrix.addFromLine(line);
     }
 
-    if ( !append ) {
+    if ( append !== true ) {
         this.assign(matrix);
     }
 
     this.modifiedTime = Date.now();
 };
 
+Matrix.prototype.toString = function() {
+    return this.toArray().join('\n');
+};
+
 /******************************************************************************/
 
-Matrix.prototype.toSelfie = function() {
-    return {
-        magicId: magicId,
-        switches: Array.from(this.switches),
-        rules: Array.from(this.rules)
-    };
+Matrix.prototype.addFromLine = function(line) {
+    let fields = this.partsFromLine(line);
+    if ( fields !== undefined ) {
+        // Switches
+        if ( fields.length === 3 ) {
+            return this.setSwitch(fields[0], fields[1], fields[2]);
+        }
+        // Rules
+        if ( fields.length === 4 ) {
+            return this.setCell(fields[0], fields[1], fields[2], fields[3]);
+        }
+    }
+};
+
+Matrix.prototype.removeFromLine = function(line) {
+    let fields = this.partsFromLine(line);
+    if ( fields !== undefined ) {
+        // Switches
+        if ( fields.length === 3 ) {
+            return this.setSwitch(fields[0], fields[1], 0);
+        }
+        // Rules
+        if ( fields.length === 4 ) {
+            return this.setCell(fields[0], fields[1], fields[2], 0);
+        }
+    }
 };
 
 /******************************************************************************/
 
 Matrix.prototype.fromSelfie = function(selfie) {
-    if ( selfie.magicId !== magicId ) { return false; }
+    if ( selfie.version !== selfieVersion ) { return false; }
     this.switches = new Map(selfie.switches);
     this.rules = new Map(selfie.rules);
     this.modifiedTime = Date.now();
     return true;
+};
+
+Matrix.prototype.toSelfie = function() {
+    return {
+        version: selfieVersion,
+        switches: Array.from(this.switches),
+        rules: Array.from(this.rules)
+    };
 };
 
 /******************************************************************************/
@@ -830,9 +795,7 @@ Matrix.prototype.diff = function(other, srcHostname, desHostnames) {
             }
         }
         srcHostname = toBroaderHostname(srcHostname);
-        if ( srcHostname === '' ) {
-            break;
-        }
+        if ( srcHostname === '' ) { break; }
     }
     return out;
 };

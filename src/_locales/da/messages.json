@@ -32,7 +32,7 @@
         "description": "a tab in dashboard"
     },
     "ubiquitousRulesPageName": {
-        "message": "Hosts-filer",
+        "message": "Assets",
         "description": "a tab in dashboard"
     },
     "rawSettingsPageName": {
@@ -86,6 +86,14 @@
     "matrixNoNetTrafficPrompt": {
         "message": "Endnu ingen trafik registreret på denne fane.",
         "description": ""
+    },
+    "matrixLocalScopeTip": {
+        "message": "Select a local scope to see\/create rules which apply only in that scope",
+        "description": "Tool tip for the local scope button"
+    },
+    "matrixGlobalScopeTip": {
+        "message": "Select the global scope to see\/create rules which apply everywhere",
+        "description": "Tool tip for the global scope button"
     },
     "matrixMtxButtonTip": {
         "message": "Deaktiver\/aktiver matrix-filtrering på dette område.",
@@ -142,6 +150,14 @@
     "matrixNoTabFound": {
         "message": "No web page found",
         "description": "Displays in place of matrix when no data is found for the current page"
+    },
+    "matrixRecipeImportTip": {
+        "message": "Import rules",
+        "description": "Used as a tooltip for the recipe import button"
+    },
+    "matrixRecipeSaveTip": {
+        "message": "Save rules",
+        "description": "Used as a tooltip for the recipe padlock button"
     },
     "statsPageTitle": {
         "message": "uMatrix &ndash; Statistik",
@@ -275,12 +291,8 @@
         "message": "Skriftstørrelse:",
         "description": ""
     },
-    "settingsMatrixDisplayTextSizeNormal": {
-        "message": "Normal",
-        "description": ""
-    },
-    "settingsMatrixDisplayTextSizeLarge": {
-        "message": "Stor",
+    "settingsIconBadgeEnabled": {
+        "message": "Vis antal separate forespørgsler på ikonet",
         "description": ""
     },
     "settingsMatrixDisplayColorBlind": {
@@ -307,38 +319,6 @@
         "message": "Site",
         "description": "Scope will be full hostname of site"
     },
-    "settingsMatrixAutoReloadPrompt": {
-        "message": "Genindlæs disse faner \"smart\", når matricen er lukket:",
-        "description": ""
-    },
-    "settingsMatrixAutoReloadNone": {
-        "message": "Ingen",
-        "description": ""
-    },
-    "settingsMatrixAutoReloadCurrent": {
-        "message": "Nuværende",
-        "description": ""
-    },
-    "settingsMatrixAutoReloadAll": {
-        "message": "Alle",
-        "description": ""
-    },
-    "settingsMatrixAutoReloadInfo": {
-        "message": "Hver gang du ændrer noget i matricen, der kan have indflydelse på en eller flere siders udseende eller adfærd, vil <i>uMatrix<\/i> automatisk genindlæse de påvirkede sider, når du lukker matricen.",
-        "description": ""
-    },
-    "settingsSubframeColor": {
-        "message": "Blokerede frames:&ensp;Farve",
-        "description": "English: Blocked frames:&ensp;Color"
-    },
-    "settingsSubframeOpacity": {
-        "message": "Uigennemsigtighed",
-        "description": "English: Opacity"
-    },
-    "settingsIconBadgeEnabled": {
-        "message": "Vis antal separate forespørgsler på ikonet",
-        "description": "English: Show the number of distinct requests on the icon"
-    },
     "settingsCollapseBlocked": {
         "message": "Sammenfold pladsholder for blokerede elementer",
         "description": "English: Collapse placeholder of blocked elements"
@@ -353,6 +333,10 @@
     },
     "settingsCloudStorageEnabled": {
         "message": "Aktiver lagring i skyen",
+        "description": ""
+    },
+    "settingsMatrixNoTooltips": {
+        "message": "Disable tooltips",
         "description": ""
     },
     "privacyPageTitle": {
@@ -467,6 +451,10 @@
         "message": "my-umatrix-rules.txt",
         "description": "default file name to use"
     },
+    "assetsHostsSection": {
+        "message": "Hosts files",
+        "description": "header to identify the hosts files section"
+    },
     "hostsFilesPrompt": {
         "message": "Alle hostnavne der forefindes i en host fil vil blive sortlistet, og blokeret overalt.",
         "description": ""
@@ -488,7 +476,7 @@
         "description": ""
     },
     "hostsFilesAutoUpdatePrompt": {
-        "message": "Auto-opdater host filer.",
+        "message": "Auto-update assets",
         "description": ""
     },
     "hostsFilesUpdateNow": {
@@ -517,6 +505,26 @@
     },
     "hostsFilesExternalListObsolete": {
         "message": "Forældet",
+        "description": ""
+    },
+    "assetsRecipesSection": {
+        "message": "Ruleset recipes",
+        "description": "header to identify the ruleset files section"
+    },
+    "assetsRecipesSummary": {
+        "message": "Ruleset recipes are imported from the popup panel <em>on demand<\/em>, i.e. <b>only<\/b> through user interaction.",
+        "description": ""
+    },
+    "assetsImportLabel": {
+        "message": "Import...",
+        "description": ""
+    },
+    "assetsInlineHostsLabel": {
+        "message": "My hosts",
+        "description": ""
+    },
+    "assetsInlineRecipesLabel": {
+        "message": "My recipes",
         "description": ""
     },
     "rawSettingsWarning": {
