@@ -303,7 +303,7 @@ var contentObserver = {
         let docReady = (e) => {
             let doc = e.target;
             doc.removeEventListener(e.type, docReady, true);
-            lss(this.contentBaseURI + 'contentscript-end.js', sandbox);
+            lss(this.contentBaseURI + 'contentscript.js', sandbox);
         };
 
         if ( doc.readyState === 'loading') {

@@ -167,6 +167,7 @@ var matrixSnapshot = function(pageStore, details) {
         has3pReferrer: pageStore.has3pReferrer,
         hasMixedContent: pageStore.hasMixedContent,
         hasNoscriptTags: pageStore.hasNoscriptTags,
+        hasWebWorkers: pageStore.hasWebWorkers,
         headerIndices: Array.from(headerIndices),
         hostname: pageStore.pageHostname,
         mtxContentModified: pageStore.mtxContentModifiedTime !== details.mtxContentModifiedTime,
@@ -390,32 +391,23 @@ var µm = µMatrix;
 
 /******************************************************************************/
 
-var contentScriptSummaryHandler = function(tabId, details) {
-    // TODO: Investigate "Error in response to tabs.executeScript: TypeError:
-    // Cannot read property 'locationURL' of null" (2013-11-12). When can this
-    // happens? 
-    if ( !details || !details.locationURL ) { return; }
-
-    // scripts
-    if ( details.inlineScript !== true ) {
-        return;
-    }
-
-    // https://github.com/gorhill/httpswitchboard/issues/25
-    var pageStore = µm.pageStoreFromTabId(tabId);
+var contentScriptSummaryHandler = function(tabId, pageStore, details) {
     if ( pageStore === null ) { return; }
 
     var pageHostname = pageStore.pageHostname;
-    var µmuri = µm.URI.set(details.locationURL);
+    var µmuri = µm.URI.set(details.documentURI);
     var frameURL = µmuri.normalizedURI();
-    var frameHostname = µmuri.hostname;
+
+    var blocked = details.blocked;
+    if ( blocked === undefined ) {
+        blocked = µm.mustBlock(pageHostname, µmuri.hostname, 'script');
+    }
 
     // https://github.com/gorhill/httpswitchboard/issues/333
     // Look-up here whether inline scripting is blocked for the frame.
-    var inlineScriptBlocked = µm.mustBlock(pageHostname, frameHostname, 'script');
     var url = frameURL + '{inline_script}';
-    pageStore.recordRequest('script', url, inlineScriptBlocked);
-    µm.logger.writeOne(tabId, 'net', pageHostname, url, 'script', inlineScriptBlocked);
+    pageStore.recordRequest('script', url, blocked);
+    µm.logger.writeOne(tabId, 'net', pageHostname, url, 'script', blocked);
 
     // https://github.com/gorhill/uMatrix/issues/225
     // A good place to force an update of the page title, as at this point
@@ -513,6 +505,7 @@ var onMessage = function(request, sender, callback) {
 
     var tabId = sender && sender.tab ? sender.tab.id || 0 : 0,
         tabContext = µm.tabContextManager.lookup(tabId),
+        rootHostname = tabContext && tabContext.rootHostname,
         pageStore = µm.pageStoreFromTabId(tabId);
 
     // Sync
@@ -534,16 +527,33 @@ var onMessage = function(request, sender, callback) {
     case 'mustRenderNoscriptTags?':
         if ( tabContext === null ) { break; }
         response =
-            µm.tMatrix.mustBlock(tabContext.rootHostname, tabContext.rootHostname, 'script') &&
-            µm.tMatrix.evaluateSwitchZ('noscript-spoof', tabContext.rootHostname);
+            µm.tMatrix.mustBlock(rootHostname, rootHostname, 'script') &&
+            µm.tMatrix.evaluateSwitchZ('noscript-spoof', rootHostname);
         if ( pageStore !== null ) {
             pageStore.hasNoscriptTags = true;
         }
         break;
 
+    case 'securityPolicyViolation':
+        if ( request.directive === 'worker-src' ) {
+            var url = µm.URI.hostnameFromURI(request.blockedURI) !== '' ?
+                request.blockedURI :
+                request.documentURI;
+            if ( pageStore !== null ) {
+                pageStore.hasWebWorkers = true;
+                pageStore.recordRequest('script', url, true);
+            }
+            if ( tabContext !== null ) {
+                µm.logger.writeOne(tabId, 'net', rootHostname, url, 'worker', request.blocked);
+            }
+        } else if ( request.directive === 'script-src' ) {
+            contentScriptSummaryHandler(tabId, pageStore, request);
+        }
+        break;
+
     case 'shutdown?':
         if ( tabContext !== null ) {
-            response = µm.tMatrix.evaluateSwitchZ('matrix-off', tabContext.rootHostname);
+            response = µm.tMatrix.evaluateSwitchZ('matrix-off', rootHostname);
         }
         break;
 
@@ -864,7 +874,8 @@ vAPI.messaging.listen('about.js', onMessage);
 
 /******************************************************************************/
 
-var µm = µMatrix;
+var µm = µMatrix,
+    loggerURL = vAPI.getURL('logger-ui.html');
 
 /******************************************************************************/
 
@@ -880,27 +891,34 @@ var onMessage = function(request, sender, callback) {
 
     switch ( request.what ) {
     case 'readMany':
+        if (
+            µm.logger.ownerId !== undefined &&
+            request.ownerId !== µm.logger.ownerId
+        ) {
+            response = { unavailable: true };
+            break;
+        }
         var tabIds = {};
-        var loggerURL = vAPI.getURL('logger-ui.html');
-        var pageStore;
         for ( var tabId in µm.pageStores ) {
-            pageStore = µm.pageStoreFromTabId(tabId);
-            if ( pageStore === null ) {
-                continue;
-            }
-            if ( pageStore.rawUrl.lastIndexOf(loggerURL, 0) === 0 ) {
-                continue;
-            }
+            var pageStore = µm.pageStoreFromTabId(tabId);
+            if ( pageStore === null ) { continue; }
+            if ( pageStore.rawUrl.startsWith(loggerURL) ) { continue; }
             tabIds[tabId] = pageStore.title || pageStore.rawUrl;
         }
         response = {
             colorBlind: false,
-            entries: µm.logger.readAll(),
+            entries: µm.logger.readAll(request.ownerId),
             maxLoggedRequests: µm.userSettings.maxLoggedRequests,
             noTabId: vAPI.noTabId,
             tabIds: tabIds,
             tabIdsToken: µm.pageStoresToken
         };
+        break;
+
+    case 'releaseView':
+        if ( request.ownerId === µm.logger.ownerId ) {
+            µm.logger.ownerId = undefined;
+        }
         break;
 
     default:

@@ -299,28 +299,63 @@ var onHeadersReceived = function(details) {
     var tabContext = µm.tabContextManager.lookup(tabId);
     if ( tabContext === null ) { return; }
 
-    if ( µm.mustAllow(tabContext.rootHostname, µm.URI.hostnameFromURI(requestURL), 'script') ) {
-        return;
-    }
+    var csp = [],
+        cspReport = [],
+        rootHostname = tabContext.rootHostname,
+        requestHostname = µm.URI.hostnameFromURI(requestURL);
 
     // If javascript is not allowed, say so through a `Content-Security-Policy`
     // directive.
     // We block only inline-script tags, all the external javascript will be
     // blocked by our request handler.
-
-    var csp = "script-src 'unsafe-eval' blob: *",
-        headers = details.responseHeaders,
-        i = headerIndexFromName('content-security-policy', headers);
-    // A CSP header is already present: just add our own directive as a
-    // separate disposition (i.e. use comma).
-    if ( i !== -1 ) {
-        headers[i].value += ', ' + csp;
-    } else {
-        headers.push({ name: 'Content-Security-Policy', value: csp });
+    if ( µm.mustAllow(rootHostname, requestHostname, 'script' ) !== true ) {
+        csp.push(µm.cspNoInlineScript);
     }
 
-    if ( requestType === 'doc' ) {
-        µm.logger.writeOne(tabId, 'net', '', csp, 'CSP', false);
+    // TODO: Firefox will eventually support `worker-src`:
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=1231788
+    if ( µm.cspNoWorker === undefined ) {
+        µm.cspNoWorker = vAPI.webextFlavor.startsWith('Mozilla-') ?
+            "child-src 'none'; frame-src data: blob: *; report-uri about:blank" :
+            "worker-src 'none'; report-uri about:blank" ;
+    }
+
+    if ( µm.tMatrix.evaluateSwitchZ('no-workers', rootHostname) ) {
+        csp.push(µm.cspNoWorker);
+    } else {
+        cspReport.push(µm.cspNoWorker);
+    }
+
+    var headers = details.responseHeaders,
+        cspDirectives, i;
+
+    if ( csp.length !== 0 ) {
+        cspDirectives = csp.join(',');
+        i = headerIndexFromName('content-security-policy', headers);
+        if ( i !== -1 ) {
+            headers[i].value += ',' + cspDirectives;
+        } else {
+            headers.push({
+                name: 'Content-Security-Policy',
+                value: cspDirectives
+            });
+        }
+        if ( requestType === 'doc' ) {
+            µm.logger.writeOne(tabId, 'net', '', cspDirectives, 'CSP', false);
+        }
+    }
+
+    if ( cspReport.length !== 0 ) {
+        cspDirectives = cspReport.join(',');
+        i = headerIndexFromName('content-security-policy-report-only', headers);
+        if ( i !== -1 ) {
+            headers[i].value += ',' + cspDirectives;
+        } else {
+            headers.push({
+                name: 'Content-Security-Policy-Report-Only',
+                value: cspDirectives
+            });
+        }
     }
 
     return { responseHeaders: headers };

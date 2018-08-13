@@ -79,7 +79,7 @@ vAPI.messaging = {
     requestId: 1,
     connected: false,
 
-    setup: function() {
+    start: function() {
         this.addListener(this.builtinListener);
         if ( this.toggleListenerCallback === null ) {
             this.toggleListenerCallback = this.toggleListener.bind(this);
@@ -205,18 +205,19 @@ vAPI.messaging = {
     }
 };
 
-vAPI.messaging.setup()
+vAPI.messaging.start()
 
 /******************************************************************************/
 
 // No need to have vAPI client linger around after shutdown if
 // we are not a top window (because element picker can still
 // be injected in top window).
-if ( window !== window.top ) {
+// Needs more investigating
+/*if ( window !== window.top ) {
     vAPI.shutdown.add(function() {
         vAPI = null;
     });
-}
+}*/
 
 /******************************************************************************/
 
