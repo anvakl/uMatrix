@@ -32,7 +32,7 @@
         "description": "a tab in dashboard"
     },
     "ubiquitousRulesPageName": {
-        "message": "Hosts-bestanden",
+        "message": "Middelen",
         "description": "a tab in dashboard"
     },
     "rawSettingsPageName": {
@@ -87,6 +87,14 @@
         "message": "Voor dit tabblad is nog geen netwerkverkeer gedetecteerd.",
         "description": ""
     },
+    "matrixLocalScopeTip": {
+        "message": "Een lokaal bereik selecteren om regels te zien\/maken die alleen in dat gebied van toepassing zijn",
+        "description": "Tool tip for the local scope button"
+    },
+    "matrixGlobalScopeTip": {
+        "message": "Het globale bereik selecteren om regels te zien\/maken die overal van toepassing zijn",
+        "description": "Tool tip for the global scope button"
+    },
     "matrixMtxButtonTip": {
         "message": "Matrixfiltering voor dit bereik in-\/uitschakelen",
         "description": "Tool tip for matrix button"
@@ -100,7 +108,7 @@
         "description": "Tool tip for the revert local permission button"
     },
     "matrixReloadButton": {
-        "message": "De pagina vernieuwen.\nDruk op Shift om de browsercache te omzeilen.",
+        "message": "De pagina vernieuwen. \nDruk op Shift om de browsercache te omzeilen.",
         "description": "Tool tip for the reload button"
     },
     "matrix1stPartyLabel": {
@@ -275,12 +283,8 @@
         "message": "Tekstgrootte:",
         "description": ""
     },
-    "settingsMatrixDisplayTextSizeNormal": {
-        "message": "Normaal",
-        "description": ""
-    },
-    "settingsMatrixDisplayTextSizeLarge": {
-        "message": "Groot",
+    "settingsIconBadgeEnabled": {
+        "message": "Het aantal geblokkeerde bronnen op het pictogram tonen",
         "description": ""
     },
     "settingsMatrixDisplayColorBlind": {
@@ -335,10 +339,6 @@
         "message": "Ondoorzichtigheid",
         "description": "English: Opacity"
     },
-    "settingsIconBadgeEnabled": {
-        "message": "Het aantal afzonderlijke aanvragen op het pictogram tonen",
-        "description": "English: Show the number of distinct requests on the icon"
-    },
     "settingsCollapseBlocked": {
         "message": "Tijdelijke aanduiding van geblokkeerde elementen samenvouwen",
         "description": "English: Collapse placeholder of blocked elements"
@@ -353,6 +353,10 @@
     },
     "settingsCloudStorageEnabled": {
         "message": "Ondersteuning voor cloudopslag inschakelen",
+        "description": ""
+    },
+    "settingsMatrixNoTooltips": {
+        "message": "Tooltips uitschakelen",
         "description": ""
     },
     "privacyPageTitle": {
@@ -467,6 +471,10 @@
         "message": "mijn-umatrix-regels.txt",
         "description": "default file name to use"
     },
+    "assetsHostsSection": {
+        "message": "Hosts-bestanden",
+        "description": "header to identify the hosts files section"
+    },
     "hostsFilesPrompt": {
         "message": "Alle hostnamen in een hosts-bestand worden in het globale bereik als geblackliste hostnamen geladen.",
         "description": ""
@@ -488,7 +496,7 @@
         "description": ""
     },
     "hostsFilesAutoUpdatePrompt": {
-        "message": "Hosts-bestanden automatisch bijwerken",
+        "message": "Middelen automatisch bijwerken",
         "description": ""
     },
     "hostsFilesUpdateNow": {
@@ -500,7 +508,7 @@
         "description": ""
     },
     "hostsFilesExternalListsHint": {
-        "message": "Eén URL per regel. Regels beginnend met &lsquo;#&rsquo; worden genegeerd. Ongeldige URL’s worden zonder mededeling genegeerd.",
+        "message": "Importeer hier externe middelen: \nEén URL per regel; ongeldige URL’s worden zonder mededeling genegeerd.",
         "description": ""
     },
     "hostsFilesExternalListsParse": {
@@ -517,6 +525,18 @@
     },
     "hostsFilesExternalListObsolete": {
         "message": "verouderd",
+        "description": ""
+    },
+    "assetsRecipesSection": {
+        "message": "Regelsetrecepten",
+        "description": "header to identify the ruleset files section"
+    },
+    "assetsRecipesSummary": {
+        "message": "Regelsetrecepten worden <em>op aanvraag<\/em> vanuit het pop-uppaneel geïmporteerd, d.w.z. <b>alleen<\/b> via gebruikersinteractie.",
+        "description": ""
+    },
+    "assetsImportLabel": {
+        "message": "Importeren...",
         "description": ""
     },
     "rawSettingsWarning": {
@@ -580,7 +600,7 @@
         "description": ""
     },
     "aboutRestoreConfirm": {
-        "message": "Al uw instelling zullen met back-upgegevens van {{time}} worden overschreven, en uMatrix zal worden herstart.\n\nWilt u alle bestaande instellingen met back-upgegevens overschrijven?",
+        "message": "Al uw instellingen zullen met back-upgegevens van {{time}} worden overschreven, en uMatrix zal worden herstart.\n\nWilt u alle bestaande instellingen met back-upgegevens overschrijven?",
         "description": "Message asking user to confirm restore"
     },
     "aboutRestoreError": {

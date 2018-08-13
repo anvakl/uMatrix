@@ -32,7 +32,7 @@
         "description": "a tab in dashboard"
     },
     "ubiquitousRulesPageName": {
-        "message": "Arquivos de hosts",
+        "message": "Recursos",
         "description": "a tab in dashboard"
     },
     "rawSettingsPageName": {
@@ -86,6 +86,14 @@
     "matrixNoNetTrafficPrompt": {
         "message": "Não foi encontrado tráfego de rede nesta aba até agora.",
         "description": ""
+    },
+    "matrixLocalScopeTip": {
+        "message": "Selecionar um escopo local para ver\/criar regras que se apliquem somente neste escopo",
+        "description": "Tool tip for the local scope button"
+    },
+    "matrixGlobalScopeTip": {
+        "message": "Selecionar um escopo global para ver\/criar regras quem se apliquem a todos lugares",
+        "description": "Tool tip for the global scope button"
     },
     "matrixMtxButtonTip": {
         "message": "Desabilitar\/habilitar filtragem pela matrix para este escopo.",
@@ -275,12 +283,8 @@
         "message": "Tamanho do texto:",
         "description": ""
     },
-    "settingsMatrixDisplayTextSizeNormal": {
-        "message": "Normal",
-        "description": ""
-    },
-    "settingsMatrixDisplayTextSizeLarge": {
-        "message": "Grande",
+    "settingsIconBadgeEnabled": {
+        "message": "Mostrar o número de recursos bloqueados sob o ícone",
         "description": ""
     },
     "settingsMatrixDisplayColorBlind": {
@@ -335,10 +339,6 @@
         "message": "Opacidade",
         "description": "English: Opacity"
     },
-    "settingsIconBadgeEnabled": {
-        "message": "Mostrar o número de pedidos distintos sob o ícone",
-        "description": "English: Show the number of distinct requests on the icon"
-    },
     "settingsCollapseBlocked": {
         "message": "Agrupar espaços reservados à elementos bloqueados",
         "description": "English: Collapse placeholder of blocked elements"
@@ -353,6 +353,10 @@
     },
     "settingsCloudStorageEnabled": {
         "message": "Habilitar suporte à armazenagem em nuvem",
+        "description": ""
+    },
+    "settingsMatrixNoTooltips": {
+        "message": "Desabilitar dicas",
         "description": ""
     },
     "privacyPageTitle": {
@@ -467,6 +471,10 @@
         "message": "minhas-regras-umatrix.txt",
         "description": "default file name to use"
     },
+    "assetsHostsSection": {
+        "message": "Arquivos de hosts",
+        "description": "header to identify the hosts files section"
+    },
     "hostsFilesPrompt": {
         "message": "Todos os hostnames no arquivo de hosts são carregados como hostnames da lista negra no escopo global.",
         "description": ""
@@ -488,7 +496,7 @@
         "description": ""
     },
     "hostsFilesAutoUpdatePrompt": {
-        "message": "Auto-atualizar os arquivos hosts.",
+        "message": "Autoatualizar recursos",
         "description": ""
     },
     "hostsFilesUpdateNow": {
@@ -500,7 +508,7 @@
         "description": ""
     },
     "hostsFilesExternalListsHint": {
-        "message": "Uma URL por linha. Linhas pré-fixadas com &lsquo;#&rsquo; irão ser ignoradas. URLs inválidas irão ser silenciosamente ignoradas.",
+        "message": "Importar recursos externos aqui:\nUma URL por linha. URLS inválidas irão ser silenciosamente ignoradas.",
         "description": ""
     },
     "hostsFilesExternalListsParse": {
@@ -517,6 +525,18 @@
     },
     "hostsFilesExternalListObsolete": {
         "message": "desatualizado",
+        "description": ""
+    },
+    "assetsRecipesSection": {
+        "message": "Receitas de conjunto de regras",
+        "description": "header to identify the ruleset files section"
+    },
+    "assetsRecipesSummary": {
+        "message": "As receitas de conjunto de regras são importadas pelo painel <em>sob demanda<\/em>, ou seja, <b> apenas<\/b> através da interação do usuário.",
+        "description": ""
+    },
+    "assetsImportLabel": {
+        "message": "Importar...",
         "description": ""
     },
     "rawSettingsWarning": {

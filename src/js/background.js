@@ -101,7 +101,9 @@ var requestStatsFactory = function() {
 */
 
 var rawSettingsDefault = {
+    contributorMode: false,
     disableCSPReportInjection: false,
+    enforceEscapedFragment: true,
     placeholderBackground:
         [
             'url("data:image/png;base64,',
@@ -165,7 +167,7 @@ return {
 
     userSettings: {
         alwaysDetachLogger: false,
-        autoUpdate: false,
+        autoUpdate: true,
         clearBrowserCache: true,
         clearBrowserCacheAfter: 60,
         cloudStorageEnabled: false,
@@ -177,14 +179,26 @@ return {
         deleteUnusedSessionCookiesAfter: 60,
         deleteLocalStorage: false,
         displayTextSize: '14px',
-        externalHostsFiles: '',
-        iconBadgeEnabled: false,
+        externalHostsFiles: [],
+        externalRecipeFiles: [],
+        iconBadgeEnabled: true,
         maxLoggedRequests: 1000,
+        noTooltips: false,
         popupCollapseAllDomains: false,
         popupCollapseBlacklistedDomains: false,
         popupScopeLevel: 'domain',
         processHyperlinkAuditing: true,
-        processReferer: false
+        processReferer: false,
+        selectedHostsFiles: [ '' ],
+        selectedRecipeFiles: [ '' ],
+        userHosts: {
+            enabled: false,
+            content: ''
+        },
+        userRecipes: {
+            enabled: false,
+            content: ''
+        }
     },
 
     rawSettingsDefault: rawSettingsDefault,
@@ -202,8 +216,7 @@ return {
     pslAssetKey: 'public_suffix_list.dat',
 
     // list of live hosts files
-    liveHostsFiles: {
-    },
+    liveHostsFiles: new Map(),
 
     // urls stats are kept on the back burner while waiting to be reactivated
     // in a tab or another.

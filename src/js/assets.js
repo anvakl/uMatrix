@@ -1,7 +1,7 @@
 /*******************************************************************************
 
-    µMatrix - a browser extension to black/white list requests.
-    Copyright (C) 2013-2015 Raymond Hill
+    uMatrix - a browser extension to black/white list requests.
+    Copyright (C) 2013-2018 Raymond Hill
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -53,9 +53,10 @@ api.removeObserver = function(observer) {
 
 var fireNotification = function(topic, details) {
     var result;
-    for ( var i = 0; i < observers.length; i++ ) {
-        if ( observers[i](topic, details) === false ) {
-            result = false;
+    for ( let i = 0; i < observers.length; i++ ) {
+        let r = observers[i](topic, details);
+        if ( r !== undefined && result === undefined ) {
+            result = r;
         }
     }
     return result;
@@ -236,6 +237,11 @@ var registerAssetSource = function(assetKey, dict) {
             entry[prop] = dict[prop];
         }
     }
+    // `content` property => `type` property
+    if ( entry.type === undefined && entry.content !== undefined ) {
+        entry.type = entry.content;
+        entry.content = undefined;
+    }
     var contentURL = dict.contentURL;
     if ( contentURL !== undefined ) {
         if ( typeof contentURL === 'string' ) {
@@ -336,6 +342,15 @@ var getAssetSourceRegistry = function(callback) {
     assetSourceRegistryStatus = [ callback ];
 
     var registryReady = function() {
+        // `content` property => `type` property
+        for ( let key in assetSourceRegistry ) {
+            let entry = assetSourceRegistry[key];
+            if ( entry.type === undefined && entry.content !== undefined ) {
+                entry.type = entry.content;
+                entry.content = undefined;
+            }
+        }
+
         var callers = assetSourceRegistryStatus;
         assetSourceRegistryStatus = 'ready';
         var fn;
@@ -821,7 +836,15 @@ var updateNext = function() {
             if ( cacheEntry && (cacheEntry.writeTime + assetEntry.updateAfter * 86400000) > now ) {
                 continue;
             }
-            if ( fireNotification('before-asset-updated', { assetKey: assetKey }) !== false ) {
+            if (
+                fireNotification(
+                    'before-asset-updated',
+                    {
+                        assetKey: assetKey,
+                        type: assetEntry.type
+                    }
+                )
+            ) {
                 return assetKey;
             }
             garbageCollectOne(assetKey);

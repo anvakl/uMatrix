@@ -32,7 +32,7 @@
         "description": "a tab in dashboard"
     },
     "ubiquitousRulesPageName": {
-        "message": "Alan adı dosyaları",
+        "message": "Varlıklar",
         "description": "a tab in dashboard"
     },
     "rawSettingsPageName": {
@@ -87,6 +87,14 @@
         "message": "Bu sekme için şimdiye kadar hiç ağ trafiği görülmedi.",
         "description": ""
     },
+    "matrixLocalScopeTip": {
+        "message": "Yalnızca bu kapsamda geçerli olan kuralları görmek\/oluşturmak için yerel bir kapsam seçin",
+        "description": "Tool tip for the local scope button"
+    },
+    "matrixGlobalScopeTip": {
+        "message": "Her yere uygulanan kuralları görmek\/oluşturmak için genel kapsamı seçin",
+        "description": "Tool tip for the global scope button"
+    },
     "matrixMtxButtonTip": {
         "message": "Bu kapsam için matris süzgecini devre dışı bırak\/etkinleştir.",
         "description": "Tool tip for matrix button"
@@ -124,7 +132,7 @@
         "description": "A menu entry in the matrix popup"
     },
     "matrixSwitchNoscriptSpoof": {
-        "message": "<code><noscript><\/code> etiketi aldat",
+        "message": "<code><noscript><\/code> etiketlerini aldat",
         "description": "A menu entry in the matrix popup"
     },
     "matrixRevertAllEntry": {
@@ -275,12 +283,8 @@
         "message": "Metin boyutu:",
         "description": ""
     },
-    "settingsMatrixDisplayTextSizeNormal": {
-        "message": "Normal",
-        "description": ""
-    },
-    "settingsMatrixDisplayTextSizeLarge": {
-        "message": "Büyük",
+    "settingsIconBadgeEnabled": {
+        "message": "Engellenmiş kaynakların sayısını simge üzerinde göster",
         "description": ""
     },
     "settingsMatrixDisplayColorBlind": {
@@ -335,10 +339,6 @@
         "message": "Saydamlık",
         "description": "English: Opacity"
     },
-    "settingsIconBadgeEnabled": {
-        "message": "Farklı isteklerin sayısını simge üzerinde göster",
-        "description": "English: Show the number of distinct requests on the icon"
-    },
     "settingsCollapseBlocked": {
         "message": "Engellenmiş elementlerin yertutucularını daralt",
         "description": "English: Collapse placeholder of blocked elements"
@@ -353,6 +353,10 @@
     },
     "settingsCloudStorageEnabled": {
         "message": "Bulut depo desteğini etkinleştir",
+        "description": ""
+    },
+    "settingsMatrixNoTooltips": {
+        "message": "Araç ipuçlarını devre dışı bırak",
         "description": ""
     },
     "privacyPageTitle": {
@@ -467,6 +471,10 @@
         "message": "umatrix-kurallarim.txt",
         "description": "default file name to use"
     },
+    "assetsHostsSection": {
+        "message": "Alan adı dosyaları",
+        "description": "header to identify the hosts files section"
+    },
     "hostsFilesPrompt": {
         "message": "Alan adı dosyasındaki tüm alan adları genel kapsamda kara listeye yüklenir.",
         "description": ""
@@ -488,7 +496,7 @@
         "description": ""
     },
     "hostsFilesAutoUpdatePrompt": {
-        "message": "Alan adı dosyalarını otomatik olarak güncelle.",
+        "message": "Varlıkları otomatik güncelle",
         "description": ""
     },
     "hostsFilesUpdateNow": {
@@ -517,6 +525,18 @@
     },
     "hostsFilesExternalListObsolete": {
         "message": "eski",
+        "description": ""
+    },
+    "assetsRecipesSection": {
+        "message": "Kural seti tarifleri",
+        "description": "header to identify the ruleset files section"
+    },
+    "assetsRecipesSummary": {
+        "message": "Kural seti tarifleri <em>isteğe bağlı olarak<\/em>, <b>yalnızca<\/b> kullanıcı etkileşimi yoluyla, açılır panelden içe aktarılır.",
+        "description": ""
+    },
+    "assetsImportLabel": {
+        "message": "İçe aktar...",
         "description": ""
     },
     "rawSettingsWarning": {

@@ -32,7 +32,7 @@
         "description": "a tab in dashboard"
     },
     "ubiquitousRulesPageName": {
-        "message": "Hostu faili",
+        "message": "Assets",
         "description": "a tab in dashboard"
     },
     "rawSettingsPageName": {
@@ -87,20 +87,28 @@
         "message": "No net traffic seen for this tab so far.",
         "description": ""
     },
+    "matrixLocalScopeTip": {
+        "message": "Select a local scope to see\/create rules which apply only in that scope",
+        "description": "Tool tip for the local scope button"
+    },
+    "matrixGlobalScopeTip": {
+        "message": "Select the global scope to see\/create rules which apply everywhere",
+        "description": "Tool tip for the global scope button"
+    },
     "matrixMtxButtonTip": {
-        "message": "Disable\/enable matrix filtering for this scope.",
+        "message": "Disable\/enable matrix filtering for this scope",
         "description": "Tool tip for matrix button"
     },
     "matrixPersistButtonTip": {
-        "message": "Save all temporary changes for this scope.",
+        "message": "Save all temporary changes for this scope",
         "description": "Tool tip for the persist button"
     },
     "matrixRevertButtonTip": {
-        "message": "Revert temporary changes for this scope.",
+        "message": "Revert temporary changes for this scope",
         "description": "Tool tip for the revert local permission button"
     },
     "matrixReloadButton": {
-        "message": "Reload the page.\nPress Shift to bypass the browser cache.",
+        "message": "Reload the page. \nPress Shift to bypass the browser cache.",
         "description": "Tool tip for the reload button"
     },
     "matrix1stPartyLabel": {
@@ -275,12 +283,8 @@
         "message": "Teksta lielums:",
         "description": ""
     },
-    "settingsMatrixDisplayTextSizeNormal": {
-        "message": "Normāls",
-        "description": ""
-    },
-    "settingsMatrixDisplayTextSizeLarge": {
-        "message": "Liels",
+    "settingsIconBadgeEnabled": {
+        "message": "Show the number of blocked resources on the icon",
         "description": ""
     },
     "settingsMatrixDisplayColorBlind": {
@@ -335,10 +339,6 @@
         "message": "Necaurredzamība",
         "description": "English: Opacity"
     },
-    "settingsIconBadgeEnabled": {
-        "message": "Show the number of distinct requests on the icon",
-        "description": "English: Show the number of distinct requests on the icon"
-    },
     "settingsCollapseBlocked": {
         "message": "Collapse placeholder of blocked elements",
         "description": "English: Collapse placeholder of blocked elements"
@@ -355,12 +355,16 @@
         "message": "Enable cloud storage support",
         "description": ""
     },
+    "settingsMatrixNoTooltips": {
+        "message": "Disable tooltips",
+        "description": ""
+    },
     "privacyPageTitle": {
         "message": "µMatrix &ndash; Konfidencialitāte",
         "description": ""
     },
     "privacyDeleteBlockedCookiesPrompt": {
-        "message": "Delete blocked cookies.",
+        "message": "Delete blocked cookies",
         "description": ""
     },
     "privacyDeleteBlockedCookiesHelp": {
@@ -372,7 +376,7 @@
         "description": "First part of 'Delete non-blocked session cookies [n] minutes after the last time they have been used'"
     },
     "privacyDeleteNonBlockedSessionCookiesPrompt2": {
-        "message": " minutes after the last time they have been used.",
+        "message": " minutes after the last time they have been used",
         "description": "Second part of 'Delete non-blocked session cookies [n] minutes after the last time they have been used'"
     },
     "privacyDeleteNonBlockedSessionCookiesHelp": {
@@ -400,7 +404,7 @@
         "description": ""
     },
     "privacyProcessRefererPrompt": {
-        "message": "Spoof <a href='https:\/\/en.wikipedia.org\/wiki\/HTTP_referer'>HTTP referrer<\/a> string of third-party requests.",
+        "message": "Spoof <a href='https:\/\/en.wikipedia.org\/wiki\/HTTP_referer'>HTTP referrer<\/a> string of third-party requests",
         "description": ""
     },
     "privacyProcessRefererHelp": {
@@ -408,7 +412,7 @@
         "description": ""
     },
     "privacyNoMixedContentPrompt": {
-        "message": "Strict HTTPS: forbid mixed content.",
+        "message": "Strict HTTPS: forbid mixed content",
         "description": ""
     },
     "privacyNoMixedContentHelp": {
@@ -416,7 +420,7 @@
         "description": ""
     },
     "privacyProcessHyperlinkAuditingPrompt": {
-        "message": "Block all <a href='https:\/\/html.spec.whatwg.org\/multipage\/semantics.html#hyperlink-auditing'>hyperlink auditing<\/a> attempts.",
+        "message": "Block all <a href='https:\/\/html.spec.whatwg.org\/multipage\/semantics.html#hyperlink-auditing'>hyperlink auditing<\/a> attempts",
         "description": ""
     },
     "privacyProcessHyperlinkAuditingHelp": {
@@ -467,6 +471,10 @@
         "message": "mani-umatriksa-noteikumi.txt",
         "description": "default file name to use"
     },
+    "assetsHostsSection": {
+        "message": "Hosts files",
+        "description": "header to identify the hosts files section"
+    },
     "hostsFilesPrompt": {
         "message": "All hostnames in a hosts file are loaded as blacklisted hostnames in the global scope.",
         "description": ""
@@ -488,7 +496,7 @@
         "description": ""
     },
     "hostsFilesAutoUpdatePrompt": {
-        "message": "Automātiski atjaunot resursdatora failus.",
+        "message": "Auto-update assets",
         "description": ""
     },
     "hostsFilesUpdateNow": {
@@ -500,7 +508,7 @@
         "description": ""
     },
     "hostsFilesExternalListsHint": {
-        "message": "One URL per line. Lines prefixed with &lsquo;#&rsquo; will be ignored. Invalid URLs will be silently ignored.",
+        "message": "Import external assets here: \nOne URL per line; invalid URLs will be silently ignored.",
         "description": ""
     },
     "hostsFilesExternalListsParse": {
@@ -517,6 +525,18 @@
     },
     "hostsFilesExternalListObsolete": {
         "message": "novecojis",
+        "description": ""
+    },
+    "assetsRecipesSection": {
+        "message": "Ruleset recipes",
+        "description": "header to identify the ruleset files section"
+    },
+    "assetsRecipesSummary": {
+        "message": "Ruleset recipes are imported from the popup panel <em>on demand<\/em>, i.e. <b>only<\/b> through user interaction.",
+        "description": ""
+    },
+    "assetsImportLabel": {
+        "message": "Import...",
         "description": ""
     },
     "rawSettingsWarning": {

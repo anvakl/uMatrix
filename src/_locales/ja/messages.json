@@ -32,7 +32,7 @@
         "description": "a tab in dashboard"
     },
     "ubiquitousRulesPageName": {
-        "message": "ホストファイル",
+        "message": "アセット",
         "description": "a tab in dashboard"
     },
     "rawSettingsPageName": {
@@ -87,6 +87,14 @@
         "message": "このタブではネットワークトラフィックを検出できません",
         "description": ""
     },
+    "matrixLocalScopeTip": {
+        "message": "ルールを作成・表示するスコープを選択する",
+        "description": "Tool tip for the local scope button"
+    },
+    "matrixGlobalScopeTip": {
+        "message": "すべてのページに適用するルールを作成・表示する",
+        "description": "Tool tip for the global scope button"
+    },
     "matrixMtxButtonTip": {
         "message": "このスコープの Matrix フィルタの有効\/無効を切り替える",
         "description": "Tool tip for matrix button"
@@ -100,7 +108,7 @@
         "description": "Tool tip for the revert local permission button"
     },
     "matrixReloadButton": {
-        "message": "このページを再読み込みする\nShift キーを押しながら実行すると、キャッシュを無視した再読み込みを行います",
+        "message": "このページを再読み込みする。\nShift キーを押しながら実行すると、キャッシュを無視した再読み込みを行います",
         "description": "Tool tip for the reload button"
     },
     "matrix1stPartyLabel": {
@@ -252,7 +260,7 @@
         "description": "First part of Remember the last [n] HTTP requests per page"
     },
     "statsPageLogSizePrompt2": {
-        "message": "<b>1ページあたり<\/b> の HTTP 要求",
+        "message": "個の HTTP リクエストを記録する",
         "description": "Second part of Remember the last [n] HTTP requests per page"
     },
     "statsPageLogSizeHelp": {
@@ -275,12 +283,8 @@
         "message": "文字の大きさ：",
         "description": ""
     },
-    "settingsMatrixDisplayTextSizeNormal": {
-        "message": "標準",
-        "description": ""
-    },
-    "settingsMatrixDisplayTextSizeLarge": {
-        "message": "大きい",
+    "settingsIconBadgeEnabled": {
+        "message": "ブロックしたリソースの数をアイコンに表示する",
         "description": ""
     },
     "settingsMatrixDisplayColorBlind": {
@@ -335,10 +339,6 @@
         "message": "不透明度",
         "description": "English: Opacity"
     },
-    "settingsIconBadgeEnabled": {
-        "message": "アイコンにリクエスト数を表示する",
-        "description": "English: Show the number of distinct requests on the icon"
-    },
     "settingsCollapseBlocked": {
         "message": "ブロックした要素のプレースホルダを表示しない",
         "description": "English: Collapse placeholder of blocked elements"
@@ -353,6 +353,10 @@
     },
     "settingsCloudStorageEnabled": {
         "message": "クラウドストレージのサポートを有効にする",
+        "description": ""
+    },
+    "settingsMatrixNoTooltips": {
+        "message": "ツールチップを無効にする",
         "description": ""
     },
     "privacyPageTitle": {
@@ -467,6 +471,10 @@
         "message": "my-umatrix-rules.txt",
         "description": "default file name to use"
     },
+    "assetsHostsSection": {
+        "message": "ホストファイル",
+        "description": "header to identify the hosts files section"
+    },
     "hostsFilesPrompt": {
         "message": "ホストファイルに記載されたすべてのホストへの、あらゆるリクエストはブロックされます。",
         "description": ""
@@ -488,7 +496,7 @@
         "description": ""
     },
     "hostsFilesAutoUpdatePrompt": {
-        "message": "ホストファイルを自動で更新する",
+        "message": "アセットを自動で更新する",
         "description": ""
     },
     "hostsFilesUpdateNow": {
@@ -500,7 +508,7 @@
         "description": ""
     },
     "hostsFilesExternalListsHint": {
-        "message": "1 行にひとつずつ記述してください。&lsquo;#&rsquo; で始まる行は無視されます。無効な URL は警告なしに無視されます。",
+        "message": "追加するアセットの URL をここに書きます。\n1 行にひとつずつ書いてください。無効な URL は警告なしに無視されます。",
         "description": ""
     },
     "hostsFilesExternalListsParse": {
@@ -517,6 +525,18 @@
     },
     "hostsFilesExternalListObsolete": {
         "message": "古い",
+        "description": ""
+    },
+    "assetsRecipesSection": {
+        "message": "ルールレシピ",
+        "description": "header to identify the ruleset files section"
+    },
+    "assetsRecipesSummary": {
+        "message": "ルールレシピは、ポップアップパネルで<b>ユーザーが選択して初めて<\/b>、ルールに追加されます。",
+        "description": ""
+    },
+    "assetsImportLabel": {
+        "message": "追加...",
         "description": ""
     },
     "rawSettingsWarning": {

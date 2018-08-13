@@ -32,7 +32,7 @@
         "description": "a tab in dashboard"
     },
     "ubiquitousRulesPageName": {
-        "message": "Tiltólisták",
+        "message": "Eszközök",
         "description": "a tab in dashboard"
     },
     "rawSettingsPageName": {
@@ -86,6 +86,14 @@
     "matrixNoNetTrafficPrompt": {
         "message": "Eddig még nincs ehhez a laphoz tartozó adatátvitel.",
         "description": ""
+    },
+    "matrixLocalScopeTip": {
+        "message": "Lokális hatáskör kiválasztásakor csak az abban érvényes szabályok láthatóak és módosíthatóak",
+        "description": "Tool tip for the local scope button"
+    },
+    "matrixGlobalScopeTip": {
+        "message": "A globális hatáskört választva azok a szabályok láthatóak és módosíthatóak, amik mindenhol érvényesek",
+        "description": "Tool tip for the global scope button"
     },
     "matrixMtxButtonTip": {
         "message": "Mátrixszűrés engedélyezése\/tiltása ebben a hatáskörben.",
@@ -275,12 +283,8 @@
         "message": "Betűméret:",
         "description": ""
     },
-    "settingsMatrixDisplayTextSizeNormal": {
-        "message": "Normál",
-        "description": ""
-    },
-    "settingsMatrixDisplayTextSizeLarge": {
-        "message": "Nagy",
+    "settingsIconBadgeEnabled": {
+        "message": "Jelenjen meg az egyedi lekérések száma az ikonon",
         "description": ""
     },
     "settingsMatrixDisplayColorBlind": {
@@ -335,10 +339,6 @@
         "message": "Áttetszőség",
         "description": "English: Opacity"
     },
-    "settingsIconBadgeEnabled": {
-        "message": "Jelenjen meg az egyedi lekérések száma az ikonon",
-        "description": "English: Show the number of distinct requests on the icon"
-    },
     "settingsCollapseBlocked": {
         "message": "Blokkolt elemek helyőrzőinek elrejtése",
         "description": "English: Collapse placeholder of blocked elements"
@@ -353,6 +353,10 @@
     },
     "settingsCloudStorageEnabled": {
         "message": "Felhőszolgáltatások támogatása",
+        "description": ""
+    },
+    "settingsMatrixNoTooltips": {
+        "message": "Tooltip kikapcsolása",
         "description": ""
     },
     "privacyPageTitle": {
@@ -467,6 +471,10 @@
         "message": "my-umatrix-rules.txt",
         "description": "default file name to use"
     },
+    "assetsHostsSection": {
+        "message": "Hosts fájlok",
+        "description": "header to identify the hosts files section"
+    },
     "hostsFilesPrompt": {
         "message": "Egy hosts fájlban található összes bejegyzés tiltott hostnév lesz a globális hatáskörre nézve.",
         "description": ""
@@ -488,7 +496,7 @@
         "description": ""
     },
     "hostsFilesAutoUpdatePrompt": {
-        "message": "Hosts fájlok automatikus frissítése.",
+        "message": "Eszközök automatikus frissítése",
         "description": ""
     },
     "hostsFilesUpdateNow": {
@@ -517,6 +525,18 @@
     },
     "hostsFilesExternalListObsolete": {
         "message": "elavult",
+        "description": ""
+    },
+    "assetsRecipesSection": {
+        "message": "Szabálysablonok",
+        "description": "header to identify the ruleset files section"
+    },
+    "assetsRecipesSummary": {
+        "message": "Szabálysablonok importálása a felugró panelen <b>kizárólag<\/b> <em>felhasználói igény szerint<\/em> történik.",
+        "description": ""
+    },
+    "assetsImportLabel": {
+        "message": "Importálás...",
         "description": ""
     },
     "rawSettingsWarning": {

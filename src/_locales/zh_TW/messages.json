@@ -32,7 +32,7 @@
         "description": "a tab in dashboard"
     },
     "ubiquitousRulesPageName": {
-        "message": "Hosts檔案",
+        "message": "資源",
         "description": "a tab in dashboard"
     },
     "rawSettingsPageName": {
@@ -87,16 +87,24 @@
         "message": "該頁面暫無網路傳輸。",
         "description": ""
     },
+    "matrixLocalScopeTip": {
+        "message": "選擇一個域名並檢視或創建應用至該域名的規則。",
+        "description": "Tool tip for the local scope button"
+    },
+    "matrixGlobalScopeTip": {
+        "message": "切換至全域並檢視或創建全域規則。",
+        "description": "Tool tip for the global scope button"
+    },
     "matrixMtxButtonTip": {
         "message": "停用或啟用於該域名下的過濾。",
         "description": "Tool tip for matrix button"
     },
     "matrixPersistButtonTip": {
-        "message": "儲存該域名下的所有臨時變更。",
+        "message": "儲存應用至該域名的所有臨時變更。",
         "description": "Tool tip for the persist button"
     },
     "matrixRevertButtonTip": {
-        "message": "撤銷該域名下的所有臨時變更。",
+        "message": "撤銷應用至該域名的所有臨時變更。",
         "description": "Tool tip for the revert local permission button"
     },
     "matrixReloadButton": {
@@ -244,7 +252,7 @@
         "description": ""
     },
     "statsPageDetailed": {
-        "message": "過濾日誌",
+        "message": "日誌",
         "description": ""
     },
     "statsPageLogSizePrompt1": {
@@ -275,12 +283,8 @@
         "message": "文字大小：",
         "description": ""
     },
-    "settingsMatrixDisplayTextSizeNormal": {
-        "message": "標準",
-        "description": ""
-    },
-    "settingsMatrixDisplayTextSizeLarge": {
-        "message": "大",
+    "settingsIconBadgeEnabled": {
+        "message": "於圖標上顯示受阻擋資源數量",
         "description": ""
     },
     "settingsMatrixDisplayColorBlind": {
@@ -335,10 +339,6 @@
         "message": "不透明度",
         "description": "English: Opacity"
     },
-    "settingsIconBadgeEnabled": {
-        "message": "於圖標上顯示頁面請求數量",
-        "description": "English: Show the number of distinct requests on the icon"
-    },
     "settingsCollapseBlocked": {
         "message": "隱藏已阻擋請求所關聯的頁面內容",
         "description": "English: Collapse placeholder of blocked elements"
@@ -353,6 +353,10 @@
     },
     "settingsCloudStorageEnabled": {
         "message": "啟用瀏覽器自帶雲端儲存",
+        "description": ""
+    },
+    "settingsMatrixNoTooltips": {
+        "message": "停用使用提示",
         "description": ""
     },
     "privacyPageTitle": {
@@ -467,6 +471,10 @@
         "message": "my-umatrix-rules.txt",
         "description": "default file name to use"
     },
+    "assetsHostsSection": {
+        "message": "Hosts 檔案",
+        "description": "header to identify the hosts files section"
+    },
     "hostsFilesPrompt": {
         "message": "Hosts 檔案中的域名將被列入全域黑名單。",
         "description": ""
@@ -488,7 +496,7 @@
         "description": ""
     },
     "hostsFilesAutoUpdatePrompt": {
-        "message": "自動更新 hosts 檔案",
+        "message": "自動更新資源",
         "description": ""
     },
     "hostsFilesUpdateNow": {
@@ -517,6 +525,18 @@
     },
     "hostsFilesExternalListObsolete": {
         "message": "已過期",
+        "description": ""
+    },
+    "assetsRecipesSection": {
+        "message": "過濾規則集合",
+        "description": "header to identify the ruleset files section"
+    },
+    "assetsRecipesSummary": {
+        "message": "過濾規則集合只能由使用者自行添加。",
+        "description": ""
+    },
+    "assetsImportLabel": {
+        "message": "導入…",
         "description": ""
     },
     "rawSettingsWarning": {

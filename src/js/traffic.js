@@ -47,11 +47,16 @@ var onBeforeRootFrameRequestHandler = function(details) {
 
     var pageStore = µm.pageStoreFromTabId(tabId);
     pageStore.recordRequest('doc', requestURL, block);
+    pageStore.perLoadAllowedRequestCount = 0;
+    pageStore.perLoadBlockedRequestCount = 0;
     µm.logger.writeOne(tabId, 'net', rootHostname, requestURL, 'doc', block);
 
     // Not blocked
     if ( !block ) {
-        // rhill 2013-11-07: Senseless to do this for behind-the-scene requests.
+        let redirectURL = maybeRedirectRootFrame(requestHostname, requestURL);
+        if ( redirectURL !== requestURL ) {
+            return { redirectUrl: redirectURL };
+        }
         µm.cookieHunter.recordPageCookies(pageStore);
         return;
     }
@@ -66,6 +71,27 @@ var onBeforeRootFrameRequestHandler = function(details) {
     vAPI.tabs.replace(tabId, vAPI.getURL('main-blocked.html?details=') + query);
 
     return { cancel: true };
+};
+
+/******************************************************************************/
+
+// https://twitter.com/thatcks/status/958776519765225473
+
+var maybeRedirectRootFrame = function(hostname, url) {
+    let µm = µMatrix;
+    if ( µm.rawSettings.enforceEscapedFragment !== true ) { return url; }
+    let block1pScripts = µm.mustBlock(hostname, hostname, 'script');
+    let reEscapedFragment = /[?&]_escaped_fragment_=/;
+    if ( reEscapedFragment.test(url) ) {
+        return block1pScripts ? url : url.replace(reEscapedFragment, '#!') ;
+    }
+    if ( block1pScripts === false ) { return url; }
+    let pos = url.indexOf('#!');
+    if ( pos === -1 ) { return url; }
+    let separator = url.lastIndexOf('?', pos) === -1 ? '?' : '&';
+    return url.slice(0, pos) +
+           separator + '_escaped_fragment_=' +
+           url.slice(pos + 2);
 };
 
 /******************************************************************************/
@@ -168,7 +194,7 @@ var onBeforeSendHeadersHandler = function(details) {
     // in request log. This way the user is better informed of what went
     // on.
 
-    // https://html.spec.whatwg.org/multipage/semantics.html#hyperlink-auditing
+    // https://html.spec.whatwg.org/multipage/links.html#hyperlink-auditing
     //
     // Target URL = the href of the link
     // Doc URL = URL of the document containing the target URL
@@ -216,6 +242,7 @@ var onBeforeSendHeadersHandler = function(details) {
         requestHeaders.splice(headerIndex, 1);
         µm.cookieHeaderFoiledCounter++;
         if ( requestType === 'doc' ) {
+            pageStore.perLoadBlockedRequestCount++;
             µm.logger.writeOne(tabId, 'net', '', headerValue, 'COOKIE', true);
         }
     }
@@ -258,6 +285,7 @@ var onBeforeSendHeadersHandler = function(details) {
                     }
                     µm.refererHeaderFoiledCounter++;
                     if ( requestType === 'doc' ) {
+                        pageStore.perLoadBlockedRequestCount++;
                         µm.logger.writeOne(tabId, 'net', '', headerValue, 'REFERER', true);
                         if ( newValue !== undefined ) {
                             µm.logger.writeOne(tabId, 'net', '', newValue, 'REFERER', false);

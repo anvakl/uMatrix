@@ -76,6 +76,7 @@ var onTabsReady = function(tabs) {
 
 var onUserSettingsLoaded = function() {
     µm.loadHostsFiles();
+    µm.loadRecipes();
 };
 
 /******************************************************************************/
@@ -97,7 +98,7 @@ var onPSLReady = function() {
 /******************************************************************************/
 
 processCallbackQueue(µm.onBeforeStartQueue, function() {
-    µm.loadPublicSuffixList(onPSLReady);
+    µm.publicSuffixList.load(onPSLReady);
 });
 
 /******************************************************************************/

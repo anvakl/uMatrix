@@ -32,11 +32,11 @@
         "description": "a tab in dashboard"
     },
     "ubiquitousRulesPageName": {
-        "message": "קבצי Hosts",
+        "message": "נכסים",
         "description": "a tab in dashboard"
     },
     "rawSettingsPageName": {
-        "message": "More",
+        "message": "עוד",
         "description": "a tab in dashboard"
     },
     "aboutPageName": {
@@ -87,16 +87,24 @@
         "message": "לא נצפו פעולות רשת בלשונית זו עד לעכשיו.",
         "description": ""
     },
+    "matrixLocalScopeTip": {
+        "message": "בחר טווח לוקאלי על מנת לראות\/ליצור חוקים אשר חלים אך ורק לטווח זה",
+        "description": "Tool tip for the local scope button"
+    },
+    "matrixGlobalScopeTip": {
+        "message": "בחר טווח גלובאלי על מנת לראות\/ליצור חוקים אשר חלים בכל מקום",
+        "description": "Tool tip for the global scope button"
+    },
     "matrixMtxButtonTip": {
-        "message": "כבה\/אפשר מטריצת פילטור עבור טווח זה.",
+        "message": "כבה\/אפשר מטריצת פילטור עבור טווח זה",
         "description": "Tool tip for matrix button"
     },
     "matrixPersistButtonTip": {
-        "message": "שמור את כל השינויים הזמניים עבור טווח זה.",
+        "message": "שמור את כל השינויים הזמניים עבור טווח זה",
         "description": "Tool tip for the persist button"
     },
     "matrixRevertButtonTip": {
-        "message": "מחק שינויים זמניים עבור טווח זה.",
+        "message": "מחק שינויים זמניים עבור טווח זה",
         "description": "Tool tip for the revert local permission button"
     },
     "matrixReloadButton": {
@@ -116,7 +124,7 @@
         "description": "A menu entry in the matrix popup"
     },
     "matrixSwitchNoWorker": {
-        "message": "Forbid web workers",
+        "message": "אסור פעילות של web workers",
         "description": "A menu entry in the matrix popup"
     },
     "matrixSwitchReferrerSpoof": {
@@ -275,12 +283,8 @@
         "message": "גודל טקסט:",
         "description": ""
     },
-    "settingsMatrixDisplayTextSizeNormal": {
-        "message": "רגיל",
-        "description": ""
-    },
-    "settingsMatrixDisplayTextSizeLarge": {
-        "message": "גדול",
+    "settingsIconBadgeEnabled": {
+        "message": "הראה את מספר הבקשות החסומות הייחודיות על האייקון",
         "description": ""
     },
     "settingsMatrixDisplayColorBlind": {
@@ -335,16 +339,12 @@
         "message": "אטימות",
         "description": "English: Opacity"
     },
-    "settingsIconBadgeEnabled": {
-        "message": "הראה את מספר הבקשות החסומות הייחודיות על האייקון",
-        "description": "English: Show the number of distinct requests on the icon"
-    },
     "settingsCollapseBlocked": {
         "message": "הסתר את המקום שנשאר מחסימה של אלמנטים",
         "description": "English: Collapse placeholder of blocked elements"
     },
     "settingsCollapseBlacklisted": {
-        "message": "Collapse placeholder of blacklisted elements",
+        "message": "הסתר את המקום שנשאר מחסימה של אלמנטים",
         "description": "A setting in the dashboard's Settings pane: 'blacklisted' means 'for which there is a specific block rule', 'specific' means 'a rule for which the destination hostname is not `*`'"
     },
     "settingsNoscriptTagsSpoofed": {
@@ -353,6 +353,10 @@
     },
     "settingsCloudStorageEnabled": {
         "message": "אפשר תמיכת אחסון ענן",
+        "description": ""
+    },
+    "settingsMatrixNoTooltips": {
+        "message": "כבה רמזים צצים",
         "description": ""
     },
     "privacyPageTitle": {
@@ -467,6 +471,10 @@
         "message": "חוקי-המטריצה-שלי.txt",
         "description": "default file name to use"
     },
+    "assetsHostsSection": {
+        "message": "קבצי Hosts",
+        "description": "header to identify the hosts files section"
+    },
     "hostsFilesPrompt": {
         "message": "כל הדומיינים בקובץ ה hosts נטענים כחסומים בטווח הגלובלי.",
         "description": ""
@@ -488,7 +496,7 @@
         "description": ""
     },
     "hostsFilesAutoUpdatePrompt": {
-        "message": "עדכן אוטומטית את קבצי ה hosts.",
+        "message": "עדכן נכסים אוטומטית",
         "description": ""
     },
     "hostsFilesUpdateNow": {
@@ -519,8 +527,20 @@
         "message": "לא עדכני",
         "description": ""
     },
+    "assetsRecipesSection": {
+        "message": "אוסף חוקים",
+        "description": "header to identify the ruleset files section"
+    },
+    "assetsRecipesSummary": {
+        "message": "אוסף החוקים מיובאים מהחלון הקופץ <em>לפי דרישה<\/em>, כלומר <b>אך ורק<\/b> באמצעות אינטראקציה של המשתמש.",
+        "description": ""
+    },
+    "assetsImportLabel": {
+        "message": "ייבא...",
+        "description": ""
+    },
     "rawSettingsWarning": {
-        "message": "Warning! Change these raw configuration settings at your own risk.",
+        "message": "אזהרה! שנה הגדרות אלה על אחריותך בלבד.",
         "description": ""
     },
     "aboutChangelog": {
@@ -716,7 +736,7 @@
         "description": ""
     },
     "genericApplyChanges": {
-        "message": "Apply changes",
+        "message": "החל שינויים",
         "description": "for generic 'Apply changes' buttons"
     }
 }

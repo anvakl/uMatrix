@@ -32,7 +32,7 @@
         "description": "a tab in dashboard"
     },
     "ubiquitousRulesPageName": {
-        "message": "Файли hosts",
+        "message": "Assets",
         "description": "a tab in dashboard"
     },
     "rawSettingsPageName": {
@@ -86,6 +86,14 @@
     "matrixNoNetTrafficPrompt": {
         "message": "У цій вкладці ще не було трафіку.",
         "description": ""
+    },
+    "matrixLocalScopeTip": {
+        "message": "Select a local scope to see\/create rules which apply only in that scope",
+        "description": "Tool tip for the local scope button"
+    },
+    "matrixGlobalScopeTip": {
+        "message": "Select the global scope to see\/create rules which apply everywhere",
+        "description": "Tool tip for the global scope button"
     },
     "matrixMtxButtonTip": {
         "message": "Вимкнути\/увімкнути фільтрацію для цього сайту.",
@@ -275,12 +283,8 @@
         "message": "Розмір тексту:",
         "description": ""
     },
-    "settingsMatrixDisplayTextSizeNormal": {
-        "message": "Середній",
-        "description": ""
-    },
-    "settingsMatrixDisplayTextSizeLarge": {
-        "message": "Великий",
+    "settingsIconBadgeEnabled": {
+        "message": "Show the number of blocked resources on the icon",
         "description": ""
     },
     "settingsMatrixDisplayColorBlind": {
@@ -335,10 +339,6 @@
         "message": "Затінення",
         "description": "English: Opacity"
     },
-    "settingsIconBadgeEnabled": {
-        "message": "Show the number of distinct requests on the icon",
-        "description": "English: Show the number of distinct requests on the icon"
-    },
     "settingsCollapseBlocked": {
         "message": "Collapse placeholder of blocked elements",
         "description": "English: Collapse placeholder of blocked elements"
@@ -353,6 +353,10 @@
     },
     "settingsCloudStorageEnabled": {
         "message": "Увімкнути хмарне зберігання",
+        "description": ""
+    },
+    "settingsMatrixNoTooltips": {
+        "message": "Disable tooltips",
         "description": ""
     },
     "privacyPageTitle": {
@@ -400,7 +404,7 @@
         "description": ""
     },
     "privacyProcessRefererPrompt": {
-        "message": "Spoof <a href='https:\/\/en.wikipedia.org\/wiki\/HTTP_referer'>HTTP referrer<\/a> string of third-party requests.",
+        "message": "Spoof <a href='https:\/\/en.wikipedia.org\/wiki\/HTTP_referer'>HTTP referrer<\/a> string of third-party requests",
         "description": ""
     },
     "privacyProcessRefererHelp": {
@@ -408,7 +412,7 @@
         "description": ""
     },
     "privacyNoMixedContentPrompt": {
-        "message": "Strict HTTPS: forbid mixed content.",
+        "message": "Strict HTTPS: forbid mixed content",
         "description": ""
     },
     "privacyNoMixedContentHelp": {
@@ -416,7 +420,7 @@
         "description": ""
     },
     "privacyProcessHyperlinkAuditingPrompt": {
-        "message": "Block all <a href='https:\/\/html.spec.whatwg.org\/multipage\/semantics.html#hyperlink-auditing'>hyperlink auditing<\/a> attempts.",
+        "message": "Block all <a href='https:\/\/html.spec.whatwg.org\/multipage\/semantics.html#hyperlink-auditing'>hyperlink auditing<\/a> attempts",
         "description": ""
     },
     "privacyProcessHyperlinkAuditingHelp": {
@@ -467,6 +471,10 @@
         "message": "my-umatrix-rules.txt",
         "description": "default file name to use"
     },
+    "assetsHostsSection": {
+        "message": "Hosts files",
+        "description": "header to identify the hosts files section"
+    },
     "hostsFilesPrompt": {
         "message": "Всі імена з файлу hosts були занесені до чорного списку у глобальному діапазоні.",
         "description": ""
@@ -488,7 +496,7 @@
         "description": ""
     },
     "hostsFilesAutoUpdatePrompt": {
-        "message": "Автоматичне оновлення файлів hosts.",
+        "message": "Auto-update assets",
         "description": ""
     },
     "hostsFilesUpdateNow": {
@@ -517,6 +525,18 @@
     },
     "hostsFilesExternalListObsolete": {
         "message": "застаріла",
+        "description": ""
+    },
+    "assetsRecipesSection": {
+        "message": "Ruleset recipes",
+        "description": "header to identify the ruleset files section"
+    },
+    "assetsRecipesSummary": {
+        "message": "Ruleset recipes are imported from the popup panel <em>on demand<\/em>, i.e. <b>only<\/b> through user interaction.",
+        "description": ""
+    },
+    "assetsImportLabel": {
+        "message": "Import...",
         "description": ""
     },
     "rawSettingsWarning": {

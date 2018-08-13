@@ -32,11 +32,11 @@
         "description": "a tab in dashboard"
     },
     "ubiquitousRulesPageName": {
-        "message": "Värdnamnsfiler",
+        "message": "Assets",
         "description": "a tab in dashboard"
     },
     "rawSettingsPageName": {
-        "message": "More",
+        "message": "Mer",
         "description": "a tab in dashboard"
     },
     "aboutPageName": {
@@ -60,7 +60,7 @@
         "description": "HAS TO FIT IN MATRIX HEADER!"
     },
     "mediaPrettyName": {
-        "message": "medium",
+        "message": "media",
         "description": "HAS TO FIT IN MATRIX HEADER!"
     },
     "pluginPrettyName": {
@@ -87,6 +87,14 @@
         "message": "Ingen nättrafik har hittills upptäckts för den här fliken.",
         "description": ""
     },
+    "matrixLocalScopeTip": {
+        "message": "Select a local scope to see\/create rules which apply only in that scope",
+        "description": "Tool tip for the local scope button"
+    },
+    "matrixGlobalScopeTip": {
+        "message": "Select the global scope to see\/create rules which apply everywhere",
+        "description": "Tool tip for the global scope button"
+    },
     "matrixMtxButtonTip": {
         "message": "Stäng av\/sätt på matrisfiltrering i detta omfång.",
         "description": "Tool tip for matrix button"
@@ -100,7 +108,7 @@
         "description": "Tool tip for the revert local permission button"
     },
     "matrixReloadButton": {
-        "message": "Ladda om sidan.\nHåll ner Skift tangenten för att kringgå webbläsarens cache.",
+        "message": "Ladda om sidan.\nHåll ner Skift-tangenten för att kringgå webbläsarens cache.",
         "description": "Tool tip for the reload button"
     },
     "matrix1stPartyLabel": {
@@ -140,7 +148,7 @@
         "description": "A menu entry in the matrix popup"
     },
     "matrixNoTabFound": {
-        "message": "No web page found",
+        "message": "Ingen webbplats hittades",
         "description": "Displays in place of matrix when no data is found for the current page"
     },
     "statsPageTitle": {
@@ -275,12 +283,8 @@
         "message": "Textstorlek:",
         "description": ""
     },
-    "settingsMatrixDisplayTextSizeNormal": {
-        "message": "Normal",
-        "description": ""
-    },
-    "settingsMatrixDisplayTextSizeLarge": {
-        "message": "Stor",
+    "settingsIconBadgeEnabled": {
+        "message": "Visa antalet distinkta förfrågningar i ikonen",
         "description": ""
     },
     "settingsMatrixDisplayColorBlind": {
@@ -296,15 +300,15 @@
         "description": "Label for default scope level selector in Settings pane"
     },
     "settingsDefaultScopeLevel0": {
-        "message": "Global",
+        "message": "Globalt",
         "description": "Scope will be global"
     },
     "settingsDefaultScopeLevel1": {
-        "message": "Domain",
+        "message": "Domän",
         "description": "Scope will be base domain"
     },
     "settingsDefaultScopeLevel2": {
-        "message": "Site",
+        "message": "Webbplats",
         "description": "Scope will be full hostname of site"
     },
     "settingsMatrixAutoReloadPrompt": {
@@ -335,10 +339,6 @@
         "message": "Genomskinlighet",
         "description": "English: Opacity"
     },
-    "settingsIconBadgeEnabled": {
-        "message": "Visa antalet distinkta förfrågningar i ikonen",
-        "description": "English: Show the number of distinct requests on the icon"
-    },
     "settingsCollapseBlocked": {
         "message": "Kollapsa blockerade objekt",
         "description": "English: Collapse placeholder of blocked elements"
@@ -353,6 +353,10 @@
     },
     "settingsCloudStorageEnabled": {
         "message": "Stöd för lagring i molnet",
+        "description": ""
+    },
+    "settingsMatrixNoTooltips": {
+        "message": "Inaktivera verktygstips",
         "description": ""
     },
     "privacyPageTitle": {
@@ -467,6 +471,10 @@
         "message": "mina-umatrix-regler.txt",
         "description": "default file name to use"
     },
+    "assetsHostsSection": {
+        "message": "Hosts files",
+        "description": "header to identify the hosts files section"
+    },
     "hostsFilesPrompt": {
         "message": "Alla värdnamn i värdnamnsfilen är laddade för att svartlista värdnamn i det globala tillämpningsområdet.",
         "description": ""
@@ -488,7 +496,7 @@
         "description": ""
     },
     "hostsFilesAutoUpdatePrompt": {
-        "message": "Uppdatera värdnamsfiler automatiskt.",
+        "message": "Auto-update assets",
         "description": ""
     },
     "hostsFilesUpdateNow": {
@@ -517,6 +525,18 @@
     },
     "hostsFilesExternalListObsolete": {
         "message": "inaktuell",
+        "description": ""
+    },
+    "assetsRecipesSection": {
+        "message": "Ruleset recipes",
+        "description": "header to identify the ruleset files section"
+    },
+    "assetsRecipesSummary": {
+        "message": "Ruleset recipes are imported from the popup panel <em>on demand<\/em>, i.e. <b>only<\/b> through user interaction.",
+        "description": ""
+    },
+    "assetsImportLabel": {
+        "message": "Importera...",
         "description": ""
     },
     "rawSettingsWarning": {
@@ -716,7 +736,7 @@
         "description": ""
     },
     "genericApplyChanges": {
-        "message": "Apply changes",
+        "message": "Tillämpa ändringar",
         "description": "for generic 'Apply changes' buttons"
     }
 }

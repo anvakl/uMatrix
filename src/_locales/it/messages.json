@@ -32,7 +32,7 @@
         "description": "a tab in dashboard"
     },
     "ubiquitousRulesPageName": {
-        "message": "File di Host",
+        "message": "Attività",
         "description": "a tab in dashboard"
     },
     "rawSettingsPageName": {
@@ -86,6 +86,14 @@
     "matrixNoNetTrafficPrompt": {
         "message": "Nessun traffico visto per questa tab, per ora.",
         "description": ""
+    },
+    "matrixLocalScopeTip": {
+        "message": "Seleziona un ambito locale per vedere\/creare regole che si applicano solo in tale ambito",
+        "description": "Tool tip for the local scope button"
+    },
+    "matrixGlobalScopeTip": {
+        "message": "Seleziona lo scopo globale per vedere\/creare regole che si applicano ovunque",
+        "description": "Tool tip for the global scope button"
     },
     "matrixMtxButtonTip": {
         "message": "Disabilita\/abilita filtro a matrice per questa pagina.\nRichieste bloccate dal filtro a matrice in questa pagina: {{count}}.",
@@ -275,12 +283,8 @@
         "message": "Dimensione del testo:",
         "description": ""
     },
-    "settingsMatrixDisplayTextSizeNormal": {
-        "message": "Normale",
-        "description": ""
-    },
-    "settingsMatrixDisplayTextSizeLarge": {
-        "message": "Grande",
+    "settingsIconBadgeEnabled": {
+        "message": "Mostra il numero di richieste sull'icona",
         "description": ""
     },
     "settingsMatrixDisplayColorBlind": {
@@ -335,10 +339,6 @@
         "message": "Opacità",
         "description": "English: Opacity"
     },
-    "settingsIconBadgeEnabled": {
-        "message": "Mostra il numero di richieste sull'icona",
-        "description": "English: Show the number of distinct requests on the icon"
-    },
     "settingsCollapseBlocked": {
         "message": "Nascondi lo spazio riservato agli elementi bloccati",
         "description": "English: Collapse placeholder of blocked elements"
@@ -353,6 +353,10 @@
     },
     "settingsCloudStorageEnabled": {
         "message": "Attiva il supporto all'archiviazione sul cloud",
+        "description": ""
+    },
+    "settingsMatrixNoTooltips": {
+        "message": "Disattiva i suggerimenti",
         "description": ""
     },
     "privacyPageTitle": {
@@ -467,6 +471,10 @@
         "message": "mie-regole-umatrix.txt",
         "description": "default file name to use"
     },
+    "assetsHostsSection": {
+        "message": "File Hosts",
+        "description": "header to identify the hosts files section"
+    },
     "hostsFilesPrompt": {
         "message": "Tutti i nomi in un file hosts vengono caricati come nomi host bloccati in ambito generale.",
         "description": ""
@@ -488,7 +496,7 @@
         "description": ""
     },
     "hostsFilesAutoUpdatePrompt": {
-        "message": "Aggiornamento automatico files hosts.",
+        "message": "Attivazione automatica",
         "description": ""
     },
     "hostsFilesUpdateNow": {
@@ -517,6 +525,18 @@
     },
     "hostsFilesExternalListObsolete": {
         "message": "obsoleta",
+        "description": ""
+    },
+    "assetsRecipesSection": {
+        "message": "Ricette di regole",
+        "description": "header to identify the ruleset files section"
+    },
+    "assetsRecipesSummary": {
+        "message": "Le ricette di regole vengono importate dal pannello popup <em>on demand<\/em>, cioè <b>solo<\/b> da interazione dell'utente.",
+        "description": ""
+    },
+    "assetsImportLabel": {
+        "message": "Importa...",
         "description": ""
     },
     "rawSettingsWarning": {

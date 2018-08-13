@@ -32,11 +32,11 @@
         "description": "a tab in dashboard"
     },
     "ubiquitousRulesPageName": {
-        "message": "호스트 파일",
+        "message": "Assets",
         "description": "a tab in dashboard"
     },
     "rawSettingsPageName": {
-        "message": "More",
+        "message": "고급",
         "description": "a tab in dashboard"
     },
     "aboutPageName": {
@@ -86,6 +86,14 @@
     "matrixNoNetTrafficPrompt": {
         "message": "이 탭에서는 네트워크 트래픽을 감지 할 수 없습니다.",
         "description": ""
+    },
+    "matrixLocalScopeTip": {
+        "message": "Select a local scope to see\/create rules which apply only in that scope",
+        "description": "Tool tip for the local scope button"
+    },
+    "matrixGlobalScopeTip": {
+        "message": "Select the global scope to see\/create rules which apply everywhere",
+        "description": "Tool tip for the global scope button"
     },
     "matrixMtxButtonTip": {
         "message": "현재 페이지에 대한 matrix 사용 여부 설정",
@@ -275,12 +283,8 @@
         "message": "글자 크기:",
         "description": ""
     },
-    "settingsMatrixDisplayTextSizeNormal": {
-        "message": "보통",
-        "description": ""
-    },
-    "settingsMatrixDisplayTextSizeLarge": {
-        "message": "큼",
+    "settingsIconBadgeEnabled": {
+        "message": "아이콘에 요청 수 표시",
         "description": ""
     },
     "settingsMatrixDisplayColorBlind": {
@@ -335,10 +339,6 @@
         "message": "Opacity",
         "description": "English: Opacity"
     },
-    "settingsIconBadgeEnabled": {
-        "message": "아이콘에 요청 수 표시",
-        "description": "English: Show the number of distinct requests on the icon"
-    },
     "settingsCollapseBlocked": {
         "message": "차단 된 요청과 관련된 페이지 콘텐츠를 숨깁니다.",
         "description": "English: Collapse placeholder of blocked elements"
@@ -353,6 +353,10 @@
     },
     "settingsCloudStorageEnabled": {
         "message": "클라우드 저장소 활성화",
+        "description": ""
+    },
+    "settingsMatrixNoTooltips": {
+        "message": "Disable tooltips",
         "description": ""
     },
     "privacyPageTitle": {
@@ -467,6 +471,10 @@
         "message": "my-umatrix-rules.txt",
         "description": "default file name to use"
     },
+    "assetsHostsSection": {
+        "message": "Hosts files",
+        "description": "header to identify the hosts files section"
+    },
     "hostsFilesPrompt": {
         "message": "호스트 파일에있는 도메인은 글로벌 블랙리스트에 포함됩니다.",
         "description": ""
@@ -488,7 +496,7 @@
         "description": ""
     },
     "hostsFilesAutoUpdatePrompt": {
-        "message": "호스트 파일 자동 업데이트",
+        "message": "Auto-update assets",
         "description": ""
     },
     "hostsFilesUpdateNow": {
@@ -519,8 +527,20 @@
         "message": "구버전입니다",
         "description": ""
     },
+    "assetsRecipesSection": {
+        "message": "Ruleset recipes",
+        "description": "header to identify the ruleset files section"
+    },
+    "assetsRecipesSummary": {
+        "message": "Ruleset recipes are imported from the popup panel <em>on demand<\/em>, i.e. <b>only<\/b> through user interaction.",
+        "description": ""
+    },
+    "assetsImportLabel": {
+        "message": "Import...",
+        "description": ""
+    },
     "rawSettingsWarning": {
-        "message": "Warning! Change these raw configuration settings at your own risk.",
+        "message": "경고! 다음 설정은 고급 사용자만 설정하세요.",
         "description": ""
     },
     "aboutChangelog": {
@@ -716,7 +736,7 @@
         "description": ""
     },
     "genericApplyChanges": {
-        "message": "Apply changes",
+        "message": "변경사항 적용",
         "description": "for generic 'Apply changes' buttons"
     }
 }
