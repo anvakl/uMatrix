@@ -1,7 +1,7 @@
 /*******************************************************************************
 
     uMatrix - a Chromium browser extension to black/white list requests.
-    Copyright (C) 2014-2017 Raymond Hill
+    Copyright (C) 2014-2018 Raymond Hill
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -187,11 +187,16 @@ var collapser = (function() {
                 target.hidden = true;
                 continue;
             }
-            if ( tag === 'iframe' ) {
+            switch ( tag ) {
+            case 'iframe':
+                if ( placeholders.frame !== true ) { break; }
                 docurl =
                     'data:text/html,' +
                     encodeURIComponent(
-                        placeholders.iframe.replace(reURLPlaceholder, src)
+                        placeholders.frameDocument.replace(
+                            reURLPlaceholder,
+                            src
+                        )
                     );
                 replaced = false;
                 // Using contentWindow.location prevent tainting browser
@@ -206,14 +211,24 @@ var collapser = (function() {
                 if ( !replaced ) {
                     target.setAttribute('src', docurl);
                 }
-                continue;
+                break;
+            case 'img':
+                if ( placeholders.image !== true ) { break; }
+                target.style.setProperty('display', 'inline-block');
+                target.style.setProperty('min-width', '20px', 'important');
+                target.style.setProperty('min-height', '20px', 'important');
+                target.style.setProperty(
+                    'border',
+                    placeholders.imageBorder,
+                    'important'
+                );
+                target.style.setProperty(
+                    'background',
+                    placeholders.imageBackground,
+                    'important'
+                );
+                break;
             }
-            target.setAttribute(src1stProps[tag], placeholders[tag]);
-            target.style.setProperty('display', 'inline-block');
-            target.style.setProperty('min-width', '20px', 'important');
-            target.style.setProperty('min-height', '20px', 'important');
-            target.style.setProperty('border', placeholders.border, 'important');
-            target.style.setProperty('background', placeholders.background, 'important');
         }
     };
 
@@ -398,14 +413,17 @@ var collapser = (function() {
 /******************************************************************************/
 
 // Executed only once.
-
+//
 // https://github.com/gorhill/httpswitchboard/issues/25
-
+//
 // https://github.com/gorhill/httpswitchboard/issues/131
 //   Looks for inline javascript also in at least one a[href] element.
-
+//
 // https://github.com/gorhill/uMatrix/issues/485
 //   Mind "on..." attributes.
+//
+// https://github.com/gorhill/uMatrix/issues/924
+//   Report inline styles.
 
 (function() {
     if (
@@ -416,6 +434,14 @@ var collapser = (function() {
         vAPI.messaging.send('contentscript.js', {
             what: 'securityPolicyViolation',
             directive: 'script-src',
+            documentURI: window.location.href
+        });
+    }
+
+    if ( document.querySelector('style,[style]') !== null ) {
+        vAPI.messaging.send('contentscript.js', {
+            what: 'securityPolicyViolation',
+            directive: 'style-src',
             documentURI: window.location.href
         });
     }
@@ -457,18 +483,29 @@ var collapser = (function() {
         meta.parentNode.removeChild(meta);
     };
 
+    var morphNoscript = function(from) {
+        if ( /^application\/(?:xhtml\+)?xml/.test(document.contentType) ) {
+            var to = document.createElement('span');
+            while ( from.firstChild !== null ) {
+                to.appendChild(from.firstChild);
+            }
+            return to;
+        }
+        var parser = new DOMParser();
+        var doc = parser.parseFromString(
+            '<span>' + from.textContent + '</span>',
+            'text/html'
+        );
+        return document.adoptNode(doc.querySelector('span'));
+    };
+
     var renderNoscriptTags = function(response) {
         if ( response !== true ) { return; }
-        var parser = new DOMParser();
-        var doc, parent, span;
+        var parent, span;
         for ( var noscript of noscripts ) {
             parent = noscript.parentNode;
             if ( parent === null ) { continue; }
-            doc = parser.parseFromString(
-                '<span>' + noscript.textContent + '</span>',
-                'text/html'
-            );
-            span = document.adoptNode(doc.querySelector('span'));
+            span = morphNoscript(noscript);
             span.style.setProperty('display', 'inline', 'important');
             if ( redirectTimer === undefined ) {
                 autoRefresh(span);

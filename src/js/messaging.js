@@ -1,7 +1,7 @@
 /*******************************************************************************
 
     uMatrix - a Chromium browser extension to black/white list requests.
-    Copyright (C) 2014-2017 Raymond Hill
+    Copyright (C) 2014-2018 Raymond Hill
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -89,6 +89,10 @@ function onMessage(request, sender, callback) {
         );
         break;
 
+    case 'readRawSettings':
+        response = µm.stringFromRawSettings();
+        break;
+
     case 'reloadHostsFiles':
         µm.reloadHostsFiles();
         break;
@@ -105,6 +109,10 @@ function onMessage(request, sender, callback) {
             request.value = undefined;
         }
         response = µm.changeUserSettings(request.name, request.value);
+        break;
+
+    case 'writeRawSettings':
+        µm.rawSettingsFromString(request.content);
         break;
 
     default:
@@ -391,28 +399,28 @@ var µm = µMatrix;
 
 /******************************************************************************/
 
-var contentScriptSummaryHandler = function(tabId, pageStore, details) {
+var foundInlineCode = function(tabId, pageStore, details, type) {
     if ( pageStore === null ) { return; }
 
-    var pageHostname = pageStore.pageHostname;
-    var µmuri = µm.URI.set(details.documentURI);
-    var frameURL = µmuri.normalizedURI();
+    var pageHostname = pageStore.pageHostname,
+        µmuri = µm.URI.set(details.documentURI),
+        frameURL = µmuri.normalizedURI();
 
     var blocked = details.blocked;
     if ( blocked === undefined ) {
-        blocked = µm.mustBlock(pageHostname, µmuri.hostname, 'script');
+        blocked = µm.mustBlock(pageHostname, µmuri.hostname, type);
     }
+
+    var mapTo = {
+        css: 'style',
+        script: 'script'
+    };
 
     // https://github.com/gorhill/httpswitchboard/issues/333
     // Look-up here whether inline scripting is blocked for the frame.
-    var url = frameURL + '{inline_script}';
-    pageStore.recordRequest('script', url, blocked);
-    µm.logger.writeOne(tabId, 'net', pageHostname, url, 'script', blocked);
-
-    // https://github.com/gorhill/uMatrix/issues/225
-    // A good place to force an update of the page title, as at this point
-    // the DOM has been loaded.
-    µm.updateTitle(tabId);
+    var url = frameURL + '{inline_' + mapTo[type] + '}';
+    pageStore.recordRequest(type, url, blocked);
+    µm.logger.writeOne(tabId, 'net', pageHostname, url, type, blocked);
 };
 
 /******************************************************************************/
@@ -447,6 +455,37 @@ var contentScriptLocalStorageHandler = function(tabId, originURL) {
 // Evaluate many URLs against the matrix.
 
 var lookupBlockedCollapsibles = function(tabId, requests) {
+    if ( placeholdersReadTime < µm.rawSettingsWriteTime ) {
+        placeholders = undefined;
+    }
+
+    if ( placeholders === undefined ) {
+        placeholders = {
+            frame: µm.rawSettings.framePlaceholder,
+            image: µm.rawSettings.imagePlaceholder
+        };
+        if ( placeholders.frame ) {
+            placeholders.frameDocument =
+                µm.rawSettings.framePlaceholderDocument.replace(
+                    '{{bg}}',
+                    µm.rawSettings.framePlaceholderBackground !== 'default' ?
+                        µm.rawSettings.framePlaceholderBackground :
+                        µm.rawSettings.placeholderBackground
+                );
+        }
+        if ( placeholders.image ) {
+            placeholders.imageBorder =
+                µm.rawSettings.imagePlaceholderBorder !== 'default' ?
+                    µm.rawSettings.imagePlaceholderBorder :
+                    µm.rawSettings.placeholderBorder;
+            placeholders.imageBackground =
+                µm.rawSettings.imagePlaceholderBackground !== 'default' ?
+                    µm.rawSettings.imagePlaceholderBackground :
+                    µm.rawSettings.placeholderBackground;
+        }
+        placeholdersReadTime = Date.now();
+    }
+
     var response = {
         blockedResources: [],
         hash: requests.hash,
@@ -464,35 +503,11 @@ var lookupBlockedCollapsibles = function(tabId, requests) {
         pageStore.lookupBlockedCollapsibles(requests, response);
     }
 
-    // TODO: evaluate whether the issue reported below still exists.
-    //   https://github.com/gorhill/uMatrix/issues/205
-    //   If blocked, the URL must be recorded by the page store, so as to
-    //   ensure they are properly reflected in the matrix.
-
-    if ( response.placeholders === null ) {
-        placeholders = {
-            background:
-                vAPI.localStorage.getItem('placeholderBackground') ||
-                µm.defaultLocalUserSettings.placeholderBackground,
-            border:
-                vAPI.localStorage.getItem('placeholderBorder') ||
-                µm.defaultLocalUserSettings.placeholderBorder,
-            iframe:
-                vAPI.localStorage.getItem('placeholderDocument') ||
-                µm.defaultLocalUserSettings.placeholderDocument,
-            img:
-                vAPI.localStorage.getItem('placeholderImage') ||
-                µm.defaultLocalUserSettings.placeholderImage
-        };
-        placeholders.iframe =
-            placeholders.iframe.replace('{{bg}}', placeholders.background);
-        response.placeholders = placeholders;
-    }
-
     return response;
 };
 
-var placeholders = null;
+var placeholders,
+    placeholdersReadTime = 0;
 
 /******************************************************************************/
 
@@ -516,10 +531,6 @@ var onMessage = function(request, sender, callback) {
         response = contentScriptLocalStorageHandler(tabId, request.originURL);
         break;
 
-    case 'contentScriptSummary':
-        contentScriptSummaryHandler(tabId, request);
-        break;
-
     case 'lookupBlockedCollapsibles':
         response = lookupBlockedCollapsibles(tabId, request);
         break;
@@ -532,6 +543,10 @@ var onMessage = function(request, sender, callback) {
         if ( pageStore !== null ) {
             pageStore.hasNoscriptTags = true;
         }
+        // https://github.com/gorhill/uMatrix/issues/225
+        //   A good place to force an update of the page title, as at
+        //   this point the DOM has been loaded.
+        µm.updateTitle(tabId);
         break;
 
     case 'securityPolicyViolation':
@@ -547,7 +562,9 @@ var onMessage = function(request, sender, callback) {
                 µm.logger.writeOne(tabId, 'net', rootHostname, url, 'worker', request.blocked);
             }
         } else if ( request.directive === 'script-src' ) {
-            contentScriptSummaryHandler(tabId, pageStore, request);
+            foundInlineCode(tabId, pageStore, request, 'script');
+        } else if ( request.directive === 'style-src' ) {
+            foundInlineCode(tabId, pageStore, request, 'css');
         }
         break;
 
@@ -788,7 +805,7 @@ var µm = µMatrix;
 /******************************************************************************/
 
 var restoreUserData = function(userData) {
-    var countdown = 3;
+    var countdown = 4;
     var onCountdown = function() {
         countdown -= 1;
         if ( countdown === 0 ) {
@@ -797,10 +814,12 @@ var restoreUserData = function(userData) {
     };
 
     var onAllRemoved = function() {
-        // Be sure to adjust `countdown` if adding/removing anything below
-        µm.XAL.keyvalSetMany(userData.settings, onCountdown);
-        µm.XAL.keyvalSetOne('userMatrix', userData.rules, onCountdown);
-        µm.XAL.keyvalSetOne('liveHostsFiles', userData.hostsFiles, onCountdown);
+        vAPI.storage.set(userData.settings, onCountdown);
+        vAPI.storage.set({ userMatrix: userData.rules }, onCountdown);
+        vAPI.storage.set({ liveHostsFiles: userData.hostsFiles }, onCountdown);
+        if ( userData.rawSettings instanceof Object ) {
+            µMatrix.saveRawSettings(userData.rawSettings, onCountdown);
+        }
     };
 
     // If we are going to restore all, might as well wipe out clean local
@@ -837,7 +856,8 @@ var onMessage = function(request, sender, callback) {
             when: Date.now(),
             settings: µm.userSettings,
             rules: µm.pMatrix.toString(),
-            hostsFiles: µm.liveHostsFiles
+            hostsFiles: µm.liveHostsFiles,
+            rawSettings: µm.rawSettings
         };
         break;
 

@@ -1,7 +1,7 @@
 /*******************************************************************************
 
     uMatrix - a Chromium browser extension to black/white list requests.
-    Copyright (C) 2014-2017 Raymond Hill
+    Copyright (C) 2014-2018 Raymond Hill
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -304,26 +304,26 @@ var onHeadersReceived = function(details) {
         rootHostname = tabContext.rootHostname,
         requestHostname = µm.URI.hostnameFromURI(requestURL);
 
-    // If javascript is not allowed, say so through a `Content-Security-Policy`
-    // directive.
-    // We block only inline-script tags, all the external javascript will be
-    // blocked by our request handler.
+    // Inline script tags.
     if ( µm.mustAllow(rootHostname, requestHostname, 'script' ) !== true ) {
         csp.push(µm.cspNoInlineScript);
     }
 
-    // TODO: Firefox will eventually support `worker-src`:
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=1231788
-    if ( µm.cspNoWorker === undefined ) {
-        µm.cspNoWorker = vAPI.webextFlavor.startsWith('Mozilla-') ?
-            "child-src 'none'; frame-src data: blob: *; report-uri about:blank" :
-            "worker-src 'none'; report-uri about:blank" ;
+    // Inline style tags.
+    if ( µm.mustAllow(rootHostname, requestHostname, 'css' ) !== true ) {
+        csp.push(µm.cspNoInlineStyle);
+    }
+
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=1302667
+    var cspNoWorker = µm.cspNoWorker;
+    if ( cspNoWorker === undefined ) {
+        cspNoWorker = cspNoWorkerInit();
     }
 
     if ( µm.tMatrix.evaluateSwitchZ('no-workers', rootHostname) ) {
-        csp.push(µm.cspNoWorker);
-    } else {
-        cspReport.push(µm.cspNoWorker);
+        csp.push(cspNoWorker);
+    } else if ( µm.rawSettings.disableCSPReportInjection === false ) {
+        cspReport.push(cspNoWorker);
     }
 
     var headers = details.responseHeaders,
@@ -359,6 +359,18 @@ var onHeadersReceived = function(details) {
     }
 
     return { responseHeaders: headers };
+};
+
+/******************************************************************************/
+
+var cspNoWorkerInit = function() {
+    if ( vAPI.webextFlavor === undefined ) {
+        return "child-src 'none'; frame-src data: blob: *; report-uri about:blank";
+    }
+    µMatrix.cspNoWorker = /^Mozilla-Firefox-5[67]/.test(vAPI.webextFlavor) ?
+        "child-src 'none'; frame-src data: blob: *; report-uri about:blank" :
+        "worker-src 'none'; report-uri about:blank" ;
+    return µMatrix.cspNoWorker;
 };
 
 /******************************************************************************/

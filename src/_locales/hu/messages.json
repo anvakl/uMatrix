@@ -35,6 +35,10 @@
         "message": "Tiltólisták",
         "description": "a tab in dashboard"
     },
+    "rawSettingsPageName": {
+        "message": "Több",
+        "description": "a tab in dashboard"
+    },
     "aboutPageName": {
         "message": "Névjegy",
         "description": "a tab in dashboard"
@@ -515,6 +519,10 @@
         "message": "elavult",
         "description": ""
     },
+    "rawSettingsWarning": {
+        "message": "Vigyázat! Ezen nyers beállítások megváltoztatása csak saját felelősségre.",
+        "description": ""
+    },
     "aboutChangelog": {
         "message": "<a href='https:\/\/github.com\/gorhill\/uMatrix\/releases'>Változási napló<\/a>",
         "description": ""
@@ -706,5 +714,9 @@
     "errorCantConnectTo": {
         "message": "Hálózati hiba: {{url}} betöltése sikertelen",
         "description": ""
+    },
+    "genericApplyChanges": {
+        "message": "Módosítások alkalmazása",
+        "description": "for generic 'Apply changes' buttons"
     }
 }

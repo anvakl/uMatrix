@@ -35,6 +35,10 @@
         "message": "ホストファイル",
         "description": "a tab in dashboard"
     },
+    "rawSettingsPageName": {
+        "message": "詳細",
+        "description": "a tab in dashboard"
+    },
     "aboutPageName": {
         "message": "uMatrix について",
         "description": "a tab in dashboard"
@@ -104,15 +108,15 @@
         "description": "1st-party"
     },
     "matrixBlacklistedHostnames": {
-        "message": "{{count}} 件のブラックリストに載っているホスト名",
+        "message": "{{count}} 件がブラックリストと一致",
         "description": "Appears in the metadata row of bottom-most group: **mind the limited width**"
     },
     "matrixSwitchNoMixedContent": {
-        "message": "完全な HTTPS",
+        "message": "混在コンテンツをブロック",
         "description": "A menu entry in the matrix popup"
     },
     "matrixSwitchNoWorker": {
-        "message": "Forbid web workers",
+        "message": "Web Worker をブロック",
         "description": "A menu entry in the matrix popup"
     },
     "matrixSwitchReferrerSpoof": {
@@ -244,7 +248,7 @@
         "description": ""
     },
     "statsPageLogSizePrompt1": {
-        "message": "最後の記録",
+        "message": "ページあたり直近の",
         "description": "First part of Remember the last [n] HTTP requests per page"
     },
     "statsPageLogSizePrompt2": {
@@ -360,7 +364,7 @@
         "description": ""
     },
     "privacyDeleteBlockedCookiesHelp": {
-        "message": "<p><i>uMatrix<\/i> はブロックする設定になっている Cookie がブラウザに保存されるのをブロックしません。ブラウザからの Cookie の送信をブロックします（これが本当に重要なことです）。ブラウザが Cookie を保存するのをブロックしないのは、そのサイトが Cookie を送信していることをユーザに知らせるとともに、必要であればその内容を確認できるようにするためです。<\/p><p>必要であれば、こうした Cookie を <i>uMatrix<\/i> がブロックしたときにブラウザから削除できます。<\/p><p><b>重要な注意点：<\/b> ブラウザの拡張機能はその機能の一部として Web リクエストをおこなうことがあります。こうしたリクエストにより、ブラウザに Cookie が保存されることがあります。もしこのオプションが設定されていて、かつ Cookie を送信したホストからの Cookie を許可するように登録されていない場合は、<i>uMatrix<\/i> によって Cookie が削除されます。拡張機能が通信するホストからの Cookie を許可するように設定するのを忘れないでください。<\/p>",
+        "message": "<p><i>uMatrix<\/i> は、ブロックされる設定の Cookie であってもブラウザに入ってくることは許可し、出て行くことをブロックします（後者が本当に必要なことです）。ブラウザに入ってくるのを許可することで、そのサイトが Cookie を使おうとしていることをユーザが確認でき、さらにその内容を調べることもできます。<\/p><p><i>uMatrix<\/i> でこれらの Cookie について確認したあと、必要であればそれらをブラウザから削除しても構いません。<\/p><p><b>重要な注意点：<\/b> ブラウザの拡張機能はその機能の一部として Web リクエストをおこなうことがあり、場合によってはブラウザ内に Cookie が保存されます。このオプションをオンにした場合、該当のホストを許可しておかないと <i>uMatrix<\/i> によって Cookie が削除されます。拡張機能が通信するホストを許可しておくことを忘れないでください。<\/p>",
         "description": ""
     },
     "privacyDeleteNonBlockedSessionCookiesPrompt1": {
@@ -404,11 +408,11 @@
         "description": ""
     },
     "privacyNoMixedContentPrompt": {
-        "message": "完全な HTTPS: 混在したコンテンツを禁止する",
+        "message": "厳密な HTTPS: 混在コンテンツをブロックする",
         "description": ""
     },
     "privacyNoMixedContentHelp": {
-        "message": "<p><a href='https:\/\/developer.mozilla.org\/ja\/docs\/Security\/MixedContent'>Mozilla Developer Network<\/a> から引用：<\/p><blockquote>もし HTTPS のページが平文の HTTP で送られてくるコンテンツを含む場合、その接続は部分的に暗号化されたものにすぎません。暗号化されていないコンテンツは盗聴可能であり、中間者攻撃によってコンテンツを書き換えることができます。すなわち、その接続は保護されているとはいえません。このような Web ページは「混在したコンテンツ」を含むページと呼ばれます。<\/blockquote>",
+        "message": "<p><a href='https:\/\/developer.mozilla.org\/ja\/docs\/Security\/%E6%B7%B7%E5%9C%A8%E3%82%B3%E3%83%B3%E3%83%86%E3%83%B3%E3%83%84'>Mozilla Developer Network<\/a> から引用：<\/p><blockquote>HTTPS のページの中に平文の HTTP で送られてくるコンテンツが含まれている場合、混在コンテンツと呼ばれます。このようなページは部分的にしか暗号化されておらず、盗聴者や中間者攻撃者が暗号化されていないコンテンツにアクセスできてしまいます。つまり、ページは安全ではありません。<\/blockquote>",
         "description": ""
     },
     "privacyProcessHyperlinkAuditingPrompt": {
@@ -452,7 +456,7 @@
         "description": ""
     },
     "userRulesExport": {
-        "message": "ファイルへのエクスポート...",
+        "message": "ファイルへエクスポート...",
         "description": ""
     },
     "userRulesFormatHint": {
@@ -515,8 +519,12 @@
         "message": "古い",
         "description": ""
     },
+    "rawSettingsWarning": {
+        "message": "警告！　これらの内部設定はご自身のリスクにより変更すること。",
+        "description": ""
+    },
     "aboutChangelog": {
-        "message": "<a href='https:\/\/github.com\/gorhill\/uBlock\/releases'>変更履歴<\/a>",
+        "message": "<a href='https:\/\/github.com\/gorhill\/uMatrix\/releases'>変更履歴<\/a>",
         "description": ""
     },
     "aboutStorageUsed": {
@@ -706,5 +714,9 @@
     "errorCantConnectTo": {
         "message": "ネットワークエラー: {{url}} に接続できません",
         "description": ""
+    },
+    "genericApplyChanges": {
+        "message": "変更を適用",
+        "description": "for generic 'Apply changes' buttons"
     }
 }
